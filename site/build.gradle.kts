@@ -1,4 +1,6 @@
 import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
+import kotlinx.html.link
+import kotlinx.html.script
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -13,8 +15,26 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
-            description.set("Powered by Kobweb")
+            description.set("Powered by Catalyst Beverage Manufacturing")
+
+            head.add {
+                script {
+                    src = "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+                }
+                link {
+                    href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+                    rel = "stylesheet"
+                }
+                link {
+                    rel = "stylesheet"
+                    href = "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+                }
+            }
+
+
         }
+
+
     }
 }
 
@@ -39,3 +59,4 @@ kotlin {
         }
     }
 }
+
