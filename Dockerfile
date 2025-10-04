@@ -2,21 +2,20 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 
-# Install Node.js and Yarn
+# Install Node.js (for Kotlin/JS)
 RUN apt-get update && apt-get install -y curl \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
-    && npm install --global yarn \
-    && node -v && npm -v && yarn -v
+    && node -v && npm -v
 
 # Copy project files
 COPY . .
 
-# Install JS dependencies
+# Install Kotlin/JS NPM dependencies
 WORKDIR /app/site
-RUN yarn install --frozen-lockfile
+RUN gradle :site:kotlinNpmInstall --no-daemon
 
-# Build Kotlin project
+# Build the project (Kotlin/JS + Kotlin/JVM)
 WORKDIR /app
 RUN gradle :site:build --no-daemon
 
@@ -27,9 +26,11 @@ WORKDIR /app
 # Copy the final JAR
 COPY --from=builder /app/site/build/libs/com.jar app.jar
 
-# Cloud Run PORT
+# Cloud Run will inject PORT
 ENV PORT=8080
 EXPOSE 8080
 
+# Run the app
 CMD ["java", "-jar", "app.jar"]
+
 
