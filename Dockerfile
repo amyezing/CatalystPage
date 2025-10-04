@@ -1,5 +1,4 @@
-# -------- Stage 1: Build --------
-FROM gradle:8.8-jdk17-node AS builder
+FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 
 # Install Node.js and npm
@@ -8,14 +7,11 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get install -y nodejs \
     && node -v && npm -v
 
-# Copy all files
 COPY . .
 
-# Install npm dependencies for the frontend
 WORKDIR /app/site
 RUN npm install
 
-# Back to project root and build the Kotlin site
 WORKDIR /app
 RUN gradle :site:build --no-daemon
 
