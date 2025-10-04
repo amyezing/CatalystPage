@@ -24,9 +24,9 @@ object NotificationFetcher {
 
         defaultRequest {
             url {
-                protocol = URLProtocol.HTTP
-                host = "localhost"
-                port = 8081
+                protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+                host = Constants.HOST
+                port = Constants.PORT
             }
         }
     }

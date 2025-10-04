@@ -7,6 +7,7 @@ import catalystpage.com.admin.fetcher.fetchShippingSummary
 import catalystpage.com.admin.fetcher.migrateShippingData
 import catalystpage.com.admin.fetcher.updateShippingById
 import catalystpage.com.database.userShipping
+import catalystpage.com.util.Constants
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
@@ -34,7 +35,7 @@ fun ShippingSummary(toastMessage: MutableState<String?>) {
 
     // ✅ Listen for global shipping updates
     DisposableEffect(Unit) {
-        val socket = WebSocket("ws://localhost:8081/api/ws/shipping/global")
+        val socket = WebSocket("wss://${Constants.HOST}/api/ws/shipping/global")
 
         socket.onmessage = { event ->
             val message = event.data.toString()

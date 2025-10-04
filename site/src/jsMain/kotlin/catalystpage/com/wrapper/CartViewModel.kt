@@ -1,6 +1,7 @@
 package catalystpage.com.wrapper
 
 import androidx.compose.runtime.*
+import catalystpage.com.util.Constants
 import dto.*
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -24,9 +25,9 @@ class CartViewModel {
 
         defaultRequest {
             url {
-                protocol = URLProtocol.HTTP
-                host = "localhost"
-                port = 8081
+                protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+                host = Constants.HOST
+                port = Constants.PORT
             }
         }
     }

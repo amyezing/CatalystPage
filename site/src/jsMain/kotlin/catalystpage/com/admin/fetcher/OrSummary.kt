@@ -1,6 +1,7 @@
 package catalystpage.com.admin.fetcher
 
 import admin.dto.AdminOrderDTO
+import catalystpage.com.util.Constants
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -20,9 +21,9 @@ val orderApiClient = HttpClient {
 
     defaultRequest {
         url {
-            protocol = URLProtocol.HTTP
-            host = "localhost" // 🔁 Use window.location.hostname in production
-            port = 8081
+            protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+            host = Constants.HOST
+            port = Constants.PORT
         }
     }
 

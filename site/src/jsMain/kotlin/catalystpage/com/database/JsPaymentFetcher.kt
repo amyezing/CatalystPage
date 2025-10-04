@@ -1,5 +1,6 @@
 package catalystpage.com.database
 
+import catalystpage.com.util.Constants
 import dto.PaymentDTO
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -27,9 +28,9 @@ object JsPaymentFetcher {
 
         defaultRequest {
             url {
-                protocol = URLProtocol.HTTP
-                host = "localhost" // Or your deployed host
-                port = 8081
+                protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+                host = Constants.HOST
+                port = Constants.PORT
             }
         }
     }
@@ -72,7 +73,7 @@ object JsPaymentFetcher {
                 body = formData
             )
 
-            val backendUrl = "http://localhost:8081"
+            val backendUrl =  "https://${Constants.HOST}"
             val response = window.fetch("$backendUrl/api/payments/submit", requestInit).await()
 
             if (response.asDynamic().ok as Boolean) {

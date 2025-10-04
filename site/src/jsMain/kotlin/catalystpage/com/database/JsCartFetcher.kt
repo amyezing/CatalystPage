@@ -1,6 +1,15 @@
 package catalystpage.com.database
 
+import catalystpage.com.util.Constants
 import dto.CartItemDTO
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.js.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
@@ -10,31 +19,36 @@ import org.w3c.fetch.RequestInit
 
 class JsCartFetcher {
 
+    private val client = HttpClient(Js) {
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+            })
+        }
+
+        defaultRequest {
+            url {
+                protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+                host = Constants.HOST
+                port = Constants.PORT
+            }
+        }
+    }
+
     suspend fun getCartItems(firebaseUid: String): List<CartItemDTO> {
-        val response = window.fetch("http://localhost:8081/api/cart/$firebaseUid").await()
-        return if (response.ok) {
-            response.json().await().unsafeCast<Array<CartItemDTO>>().toList()
-        } else emptyList()
+        return client.get("api/cart/$firebaseUid").body()
     }
 
     suspend fun addToCart(item: CartItemDTO): CartItemDTO {
-        val response = window.fetch("http://localhost:8081/api/cart", RequestInit(
-            method = "POST",
-            headers = Headers().apply { set("Content-Type", "application/json") },
-            body = Json.encodeToString(CartItemDTO.serializer(), item)
-        )).await()
-
-        if (!response.ok) {
-            throw Exception("HTTP ${response.status}: ${response.statusText}")
-        }
-
-        val text = response.text().await()
-        return Json.decodeFromString(CartItemDTO.serializer(), text)
+        return client.post("api/cart") {
+            contentType(ContentType.Application.Json)
+            setBody(item)
+        }.body()
     }
 
     suspend fun updateQuantity(id: Int, quantity: Int): Boolean {
         val firebaseUid = window.localStorage.getItem("firebaseUserUID") ?: return false
-
         val item = CartItemDTO(
             id = id,
             firebaseUid = firebaseUid,
@@ -42,26 +56,21 @@ class JsCartFetcher {
             productVariantId = null
         )
 
-        val response = window.fetch("/api/cart/$id", RequestInit(
-            method = "PUT",
-            headers = Headers().apply { set("Content-Type", "application/json") },
-            body = Json.encodeToString(CartItemDTO.serializer(), item)
-        )).await()
+        val response = client.put("api/cart/$id") {
+            contentType(ContentType.Application.Json)
+            setBody(item)
+        }
 
-        return response.ok
+        return response.status.isSuccess()
     }
 
     suspend fun getCartCount(firebaseUid: String): Int {
-        val response = window.fetch("http://localhost:8081/api/cart/count/$firebaseUid").await()
-        if (!response.ok) return 0
-
-        val text = response.text().await() // get raw JSON string
-        val data = Json.decodeFromString<CartCountDTO>(text) // decode into strongly-typed object
+        val data: CartCountDTO = client.get("api/cart/count/$firebaseUid").body()
         return data.count
     }
 
     suspend fun deleteCartItem(id: Int): Boolean {
-        val response = window.fetch("/api/cart/$id", RequestInit(method = "DELETE")).await()
-        return response.ok
+        val response = client.delete("api/cart/$id")
+        return response.status.isSuccess()
     }
 }

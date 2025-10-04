@@ -4,6 +4,7 @@ import admin.dto.AdminPaymentSummaryDTO
 import androidx.compose.runtime.*
 import catalystpage.com.admin.fetcher.fetchAdminPaymentSummary
 import catalystpage.com.admin.fetcher.updatePaymentStatus
+import catalystpage.com.util.Constants
 import com.varabyte.kobweb.compose.css.FontWeight
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
@@ -76,7 +77,7 @@ fun PaymentSummary() {
                         Text("📷 Proof of Payment:")
                     }
                     Img(
-                        src = "http://localhost:8081/${summary.proofImage}",
+                        src =  "https://${Constants.HOST}/${summary.proofImage}",
                         attrs = Modifier
                             .margin(top = 8.px)
                             .maxWidth(100.px)

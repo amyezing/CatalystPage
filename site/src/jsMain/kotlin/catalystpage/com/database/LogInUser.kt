@@ -4,6 +4,13 @@ import androidx.compose.runtime.MutableState
 import catalystpage.com.firebase.*
 import dto.Role
 import dto.UserDTO
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.js.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
@@ -18,6 +25,40 @@ val jsonParser = Json {
     isLenient = true
 }
 
+object AuthFetcher {
+    private val jsonParser = Json { ignoreUnknownKeys = true; isLenient = true }
+
+    private val client = HttpClient(Js) {
+        install(ContentNegotiation) {
+            json(jsonParser)
+        }
+    }
+
+    suspend fun syncUserWithBackend(user: UserDTO): UserDTO {
+        return client.post {
+            url {
+                protocol = URLProtocol.HTTPS
+                host = Constants.HOST
+                port = Constants.PORT
+                encodedPath = "/api/auth/sync"
+            }
+            contentType(ContentType.Application.Json)
+            setBody(user)
+        }.body()
+    }
+
+    suspend fun fetchAdminEmails(): List<String> {
+        return client.get {
+            url {
+                protocol = URLProtocol.HTTPS
+                host = Constants.HOST
+                port = Constants.PORT
+                encodedPath = "/api/admin-emails"
+            }
+        }.body()
+    }
+}
+
 fun signInWithGoogle(onUserSynced: (UserDTO) -> Unit) {
     val provider = GoogleAuthProvider()
     signInWithPopup(auth, provider)
@@ -26,10 +67,7 @@ fun signInWithGoogle(onUserSynced: (UserDTO) -> Unit) {
             if (user != null) {
                 MainScope().launch {
                     try {
-                        val adminEmailsResp = window.fetch("http://localhost:8081/api/admin-emails").await()
-                        val adminEmailsDynamic = adminEmailsResp.json().await().asDynamic().emails as Array<dynamic>
-                        val adminEmails = adminEmailsDynamic.mapNotNull { it as? String }
-
+                        val adminEmails = AuthFetcher.fetchAdminEmails()
                         val userEmail = user.email as? String
                         val userRole = if (userEmail != null && adminEmails.any { it.lowercase() == userEmail.lowercase() }) {
                             Role.ADMIN
@@ -43,26 +81,14 @@ fun signInWithGoogle(onUserSynced: (UserDTO) -> Unit) {
                             role = userRole
                         )
 
-                        val jsonBody = Json.encodeToString(userData)
+                        val syncedUser = AuthFetcher.syncUserWithBackend(userData)
+
                         window.localStorage.setItem("firebaseUserUID", user.uid)
                         window.localStorage.setItem("firebaseUserEmail", userEmail ?: "")
 
-                        window.fetch(
-                            "http://localhost:8081/api/auth/sync",
-                            RequestInit(
-                                method = "POST",
-                                headers = js("{ 'Content-Type': 'application/json' }"),
-                                body = jsonBody
-                            )
-                        ).then { resp ->
-                            resp.text().then { rawText ->
-                                val syncedUser = jsonParser.decodeFromString<UserDTO>(rawText)
-                                onUserSynced(syncedUser)
-                            }
-                        }.catch { e -> console.error("❌ Failed to sync user:", e) }
-
+                        onUserSynced(syncedUser)
                     } catch (e: dynamic) {
-                        console.error("❌ Error fetching admin emails:", e)
+                        console.error("❌ Error during Google sign-in sync:", e)
                     }
                 }
             }
@@ -72,11 +98,8 @@ fun signInWithGoogle(onUserSynced: (UserDTO) -> Unit) {
         }
 }
 
-
-
 fun getLoggedInUser(): String? {
     val user = auth.currentUser
-
     return if (user != null) {
         console.log("User is already logged in: ${user.email}")
         user.email as? String
@@ -86,7 +109,6 @@ fun getLoggedInUser(): String? {
     }
 }
 
-
 fun logOutUser() {
     signOut(auth)
         .then {
@@ -94,8 +116,5 @@ fun logOutUser() {
             window.localStorage.removeItem("firebaseUserEmail")
             console.log("User logged out successfully")
         }
-        .catch { error ->
-            console.error("Logout failed:", error)
-        }
+        .catch { error -> console.error("Logout failed:", error) }
 }
-

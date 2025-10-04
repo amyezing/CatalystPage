@@ -1,5 +1,6 @@
 package catalystpage.com.firebase
 
+import catalystpage.com.database.Constants
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 
@@ -16,7 +17,7 @@ object FirebaseConfig {
 suspend fun initFirebase(): Unit {
     try {
         // hit your backend route that returns the JSON config
-        val resp = window.fetch("http://localhost:8081/api/frontend-config").await()
+        val resp = window.fetch("https://${Constants.HOST}/api/frontend-config").await()
         val json = resp.json().await().asDynamic()
 
         val configJs = js("({})")

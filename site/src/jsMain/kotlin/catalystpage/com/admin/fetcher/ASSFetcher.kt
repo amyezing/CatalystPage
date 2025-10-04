@@ -2,6 +2,7 @@ package catalystpage.com.admin.fetcher
 
 import admin.dto.ShippingDTO
 import catalystpage.com.database.userShipping
+import catalystpage.com.util.Constants
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -22,9 +23,9 @@ val adminShipping = HttpClient {
 
     defaultRequest {
         url {
-            protocol = URLProtocol.HTTP
-            host = "localhost"
-            port = 8081
+            protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+            host = Constants.HOST
+            port = Constants.PORT
         }
     }
 

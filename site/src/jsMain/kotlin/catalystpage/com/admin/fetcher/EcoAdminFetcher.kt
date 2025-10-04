@@ -1,5 +1,6 @@
 package catalystpage.com.admin.fetcher
 
+import catalystpage.com.util.Constants
 import dto.community.ZoneDTO
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -23,9 +24,9 @@ object EcoAdminFetcher {
         }
         defaultRequest {
             url {
-                protocol = URLProtocol.HTTP
-                host = "localhost"
-                port = 8081
+                protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+                host = Constants.HOST
+                port = Constants.PORT
             }
         }
     }

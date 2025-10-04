@@ -1,5 +1,6 @@
 package catalystpage.com.database
 
+import catalystpage.com.util.Constants
 import dto.community.CommunityProgressDTO
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -26,8 +27,8 @@ object EcoFetcher {
         defaultRequest {
             url {
                 protocol = URLProtocol.HTTP
-                host = "localhost"
-                port = 8081
+                host = Constants.HOST
+                port = Constants.PORT
             }
         }
     }
