@@ -110,8 +110,5 @@ kotlin {
         }
     }
 }
-tasks.named("jsBrowserProductionWebpack") {
-    dependsOn("kotlinNpmInstall")
-}
 
 
