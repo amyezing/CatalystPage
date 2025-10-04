@@ -1,5 +1,5 @@
 # -------- Stage 1: Build --------
-FROM gradle:8.8-jdk17 AS builder
+FROM gradle:8.8-jdk17-node AS builder
 WORKDIR /app
 
 # Install Node.js and npm
