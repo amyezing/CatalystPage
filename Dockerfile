@@ -8,11 +8,17 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get install -y nodejs \
     && node -v && npm -v
 
-# Copy project files
-COPY . .
+# Copy only Gradle build files first (cache dependencies)
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY site/build.gradle.kts site/package.json site/yarn.lock ./site/
 
-# Ensure Gradle installs Kotlin/JS NPM dependencies
-RUN gradle :site:kotlinNpmInstall --no-daemon
+# Pre-install NPM dependencies in site module (caching)
+WORKDIR /app/site
+RUN gradle :kotlinNpmInstall --no-daemon
+
+# Copy the rest of the project
+WORKDIR /app
+COPY . .
 
 # Build the project
 RUN gradle :site:build --no-daemon
