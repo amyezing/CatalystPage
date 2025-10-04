@@ -61,7 +61,7 @@ fun OverflowMenu(onMenuClosed: () -> Unit) {
                 .fillMaxHeight()
                 .padding(all = 25.px)
                 .width(if (breakpoint < Breakpoint.MD) 50.percent else 25.percent)
-                .overflow(Overflow.Auto)
+                .overflow(Overflow.Hidden)
                 .scrollBehavior(ScrollBehavior.Smooth)
                 .backgroundColor(Colors.White)
                 .translateX(tx = translateX)
@@ -86,12 +86,14 @@ fun OverflowMenu(onMenuClosed: () -> Unit) {
                     size = IconSize.LG
                 )
                 Image(
-                    modifier = Modifier.size(30.px),
+                    modifier = Modifier
+                        .margin(left = 25.px)
+                        .size(30.px),
                     src = Res.Image.logo,
                     alt = "Logo Image"
                 )
             }
-            Section.entries.toTypedArray().take(6).forEach { section ->
+            Section.entries.toTypedArray().take(7).forEach { section ->
                 Link(
                     modifier = NavigationItemStyle.toModifier()
                         .margin(bottom = 10.px)

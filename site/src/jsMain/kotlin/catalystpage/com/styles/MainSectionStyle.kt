@@ -1,20 +1,19 @@
 package catalystpage.com.styles
 
 import catalystpage.com.model.Theme
+import catalystpage.com.util.Constants.ROBOTO_SERIF
+import com.varabyte.kobweb.compose.css.Cursor
+import com.varabyte.kobweb.compose.css.FontStyle
+import com.varabyte.kobweb.compose.css.TextDecorationLine
 import com.varabyte.kobweb.compose.css.Transition
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.graphics.Colors
-import com.varabyte.kobweb.compose.ui.modifiers.color
-import com.varabyte.kobweb.compose.ui.modifiers.transform
-import com.varabyte.kobweb.compose.ui.modifiers.transition
-import com.varabyte.kobweb.compose.ui.modifiers.width
+import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.silk.style.CssStyle
+import com.varabyte.kobweb.silk.style.StyleScope
 import com.varabyte.kobweb.silk.style.selectors.hover
-import org.jetbrains.compose.web.css.Color
-import org.jetbrains.compose.web.css.deg
-import org.jetbrains.compose.web.css.ms
-import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.*
 
 
 val NavigationItemStyle = CssStyle {
@@ -54,7 +53,7 @@ val SocialLinkStyle = CssStyle {
             .transition(Transition.of(property = "color", duration = 200.ms))
     }
     hover {
-        Modifier.color(Theme.Bubbles.rgb)
+        Modifier.color(Colors.Black)
     }
 }
 
@@ -68,3 +67,30 @@ val MainButtonStyle = CssStyle {
         Modifier.width(120.px)
     }
 }
+
+val BadgesStyle = CssStyle {
+    base {
+        Modifier
+            .transform { rotateY(0.deg) }
+            .transition(Transition.of(property = "transform", duration = 2000.ms))
+    }
+    hover {
+        Modifier
+            .transform { rotateY((360).deg) }
+    }
+}
+
+val ClearTextStyle = CssStyle {
+    base {
+        Modifier
+            .fontStyle(FontStyle.Italic)
+            .transition(Transition.of(property = "transform", duration = 2000.ms))
+
+    }
+    hover {
+        Modifier
+            .fontStyle(FontStyle.Normal) // change style on hover
+            .textDecorationLine(TextDecorationLine.Underline) // optional
+    }
+}
+

@@ -48,5 +48,19 @@ enum class Section(
         subtitle = "",
         desc = "",
         path = "/#contact"
+    ),
+    SignIn(
+        id = "signIn",
+        title = "Sign In",
+        subtitle = "",
+        desc = "",
+        path = "/signIn"
+    ),
+    Dashboard(
+    id = "dashboard",
+    title = "",
+    subtitle = "",
+    desc = "",
+    path = "/dashboard"
     )
 }

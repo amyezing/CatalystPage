@@ -1,7 +1,6 @@
 package catalystpage.com.components
 
-import androidx.compose.runtime.Composable
-import catalystpage.com.model.Products
+import androidx.compose.runtime.*
 import catalystpage.com.styles.ProductSectionStyle
 import catalystpage.com.util.Constants.FONT_FAMILY
 import catalystpage.com.util.Res
@@ -20,6 +19,7 @@ import com.varabyte.kobweb.compose.ui.graphics.Color.Companion.argb
 import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.silk.components.graphics.Image
+import dto.ProductDTO
 import org.jetbrains.compose.web.css.Color
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
@@ -29,8 +29,8 @@ import org.jetbrains.compose.web.dom.Text
 @Composable
 fun ProductCard(
     modifier: Modifier = Modifier,
-    products: Products,
-    link: String = products.title,
+    product: ProductDTO,
+    link: String // You had `link` used but not passed, so add it here
 ) {
     Link(
         modifier = ProductSectionStyle.toModifier()
@@ -54,8 +54,8 @@ fun ProductCard(
                     modifier = Modifier
                         .size(300.px)
                         .objectFit(ObjectFit.Cover),
-                    src = products.image,
-                    alt = "Portfolio Image"
+                    src = product.imageUrl ?: "", // safe call
+                    alt = product.name
                 )
                 Box(
                     modifier = Modifier
@@ -84,21 +84,21 @@ fun ProductCard(
                     .fontWeight(FontWeight.Bold)
                     .toAttrs()
             ) {
-                Text(products.title)
+                Text(product.name)
             }
             P(
                 attrs = Modifier
                     .id("portfolioDesc")
-                    .fillMaxWidth()
+                    .width(200.px)
                     .margin(topBottom = 0.px)
                     .fontFamily(FONT_FAMILY)
-                    .fontSize(14.px)
+                    .fontSize(15.px)
                     .fontWeight(FontWeight.Normal)
                     .color(Color.dimgray)
-                    .opacity(50.percent)
+                    .opacity(70.percent)
                     .toAttrs()
             ) {
-                Text(products.description)
+                Text(product.description ?: "")
             }
         }
     }

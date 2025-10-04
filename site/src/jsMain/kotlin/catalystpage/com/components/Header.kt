@@ -18,6 +18,7 @@ import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.core.rememberPageContext
 import com.varabyte.kobweb.silk.components.graphics.Image
 import com.varabyte.kobweb.silk.components.icons.fa.FaBars
+import com.varabyte.kobweb.silk.components.icons.fa.FaUser
 import com.varabyte.kobweb.silk.components.icons.fa.IconSize
 import com.varabyte.kobweb.silk.components.navigation.Link
 import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
@@ -57,7 +58,7 @@ fun LeftSide(
             FaBars(
                 modifier = Modifier
                     .margin(right = 15.px)
-                    .color(Colors.Black)
+                    .color(Colors.White)
                     .onClick {
                         onMenuClicked()
                     },
@@ -79,6 +80,7 @@ fun LeftSide(
 
 @Composable
 fun RightSide() {
+    val pageContext = rememberPageContext()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,5 +101,14 @@ fun RightSide() {
                 text = section.title
             )
         }
+        FaUser(
+            modifier = NavigationItemStyle.toModifier()
+                .margin(10.px)
+                .cursor(Cursor.Pointer)
+                .onClick {
+                    pageContext.router.navigateTo("/signIn")
+                },
+            size = IconSize.LG
+        )
     }
 }

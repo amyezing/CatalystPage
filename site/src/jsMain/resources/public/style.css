@@ -1,0 +1,94 @@
+.dropdown-menu {
+  border-radius: 8px;        /* rounded corners */
+  background-color: rgba(255, 255, 255, 0.9);
+  min-width: 170px;
+  max-width: 180px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0; /* subtle hover */
+}
+
+.dropdown-menu.dropdown-width-50 {
+  min-width: 50px !important;
+}
+
+
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #A3C7CC;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+
+
+@media print {
+
+
+  /* Hide the print button */
+  #printButton {
+    display: none !important;
+  }
+   .print-note {
+      font-size: 10pt !important;
+      color: #555 !important;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+  /* Center the order card when printing */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+   .print-center {
+      display: block !important;
+      margin: 0 auto !important;    /* center horizontally */
+      float: none !important;
+      width: auto !important;       /* shrink to fit content */
+      max-width: 900px !important;  /* same as your card */
+      text-align: left;             /* reset text alignment */
+    }
+}

@@ -8,6 +8,7 @@ import catalystpage.com.model.Theme
 import catalystpage.com.model.Values
 import catalystpage.com.styles.AboutImageStyle
 import catalystpage.com.styles.AboutTextStyle
+import catalystpage.com.util.Constants.ABOUT_US
 import catalystpage.com.util.Constants.FONT_FAMILY
 import catalystpage.com.util.Constants.SECTION_WIDTH
 import catalystpage.com.util.ObserveViewportEntered
@@ -20,6 +21,7 @@ import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
+import com.varabyte.kobweb.compose.ui.graphics.Colors
 import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.silk.components.graphics.Image
@@ -127,11 +129,10 @@ fun AboutMe() {
                 .fontFamily(FONT_FAMILY)
                 .fontSize(18.px)
                 .fontWeight(FontWeight.Normal)
-                .fontStyle(FontStyle.Italic)
-                .color(Color.darkgray)
+                .color(Colors.Black)
                 .toAttrs()
         ) {
-            Text("At Catalyst, we believe in the transformative power of fermentation. Our handcrafted kombucha is more than just a drink—it's a commitment to balance, growth, and well-being. We focus on quality, sustainability, and innovation to bring you beverages that nourish both body and mind.")
+            Text(ABOUT_US)
         }
         Values.entries.forEach { skill ->
             ValueBar(

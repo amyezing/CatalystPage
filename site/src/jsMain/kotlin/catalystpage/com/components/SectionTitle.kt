@@ -69,7 +69,7 @@ fun SectionTitle(
                 )
                 .fontFamily(FONT_FAMILY)
                 .fontSize(25.px)
-                .fontWeight(FontWeight.Normal)
+                .fontWeight(FontWeight.Bold)
                 .color(Color.dimgray)
                 .transition(Transition.of(property = "margin", duration = 300.ms))
                 .toAttrs()

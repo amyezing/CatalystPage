@@ -26,6 +26,7 @@ import com.varabyte.kobweb.silk.theme.breakpoint.rememberBreakpoint
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.P
+import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
@@ -89,24 +90,18 @@ fun MainText(breakpoint: Breakpoint) {
                     .color(Theme.BrightGray.rgb)
                     .toAttrs()
             ) {
-                Text("Balanced Brews,")
-            }
-            P(
-                attrs = Modifier
-                    .margin(topBottom = 0.px)
-                    .padding(leftRight = 25.px)
-                    .fontWeight(FontWeight.Medium)
-                    .fontFamily(FONT_FAMILY)
-                    .fontSize(
-                        if (breakpoint >= Breakpoint.MD) 68.px
-                        else if (breakpoint >= Breakpoint.LG) 50.px
-                        else 40.px
-                    )
-                    .fontWeight(FontWeight.Normal)
-                    .color(Theme.BrightGray.rgb)
-                    .toAttrs()
-            ) {
-                Text("For a Thriving Life")
+                Span(
+                    attrs = Modifier
+                        .toAttrs()
+                )   {
+                    Text("Balanced brews, for a ")
+                }
+                Span(
+                    attrs = Modifier
+                        .toAttrs()
+                )   {
+                    Text("thriving life.")
+                }
             }
         }
     }

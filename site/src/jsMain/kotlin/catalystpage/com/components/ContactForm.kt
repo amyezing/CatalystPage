@@ -3,6 +3,7 @@ package catalystpage.com.components
 import androidx.compose.runtime.Composable
 import catalystpage.com.styles.InputStyle
 import catalystpage.com.styles.MainButtonStyle
+import catalystpage.com.util.Constants.FONT_FAMILY
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.attrsModifier
 import com.varabyte.kobweb.compose.ui.toAttrs
@@ -19,7 +20,7 @@ import org.jetbrains.compose.web.dom.*
 @Composable
 fun ContactForm(breakpoint: Breakpoint) {
     Form(
-        action = "https://formspree.io/f/mgvokawe",
+        action = "https://formspree.io/f/mayzkand",
         attrs = Modifier
             .attrsModifier {
                 attr("method", "POST")
@@ -29,6 +30,7 @@ fun ContactForm(breakpoint: Breakpoint) {
         Label(
             attrs = Modifier
                 .classNames("form-label")
+                .fontFamily(FONT_FAMILY)
                 .toAttrs(),
             forId = "inputName"
         ) {
@@ -44,7 +46,8 @@ fun ContactForm(breakpoint: Breakpoint) {
                     if (breakpoint >= Breakpoint.MD) 500.px
                     else 250.px
                 )
-                .backgroundColor(Colors.LightGray)
+                .backgroundColor(Colors.White)
+                .fontFamily(FONT_FAMILY)
                 .boxShadow(0.px, 0.px, 0.px, 0.px, null)
                 .attrsModifier {
                     attr("placeholder", "Nickname")
@@ -56,6 +59,7 @@ fun ContactForm(breakpoint: Breakpoint) {
         Label(
             attrs = Modifier
                 .classNames("form-label")
+                .fontFamily(FONT_FAMILY)
                 .toAttrs(),
             forId = "inputEmail"
         ) {
@@ -71,7 +75,8 @@ fun ContactForm(breakpoint: Breakpoint) {
                     if (breakpoint >= Breakpoint.MD) 500.px
                     else 250.px
                 )
-                .backgroundColor(Colors.LightGray)
+                .backgroundColor(Colors.White)
+                .fontFamily(FONT_FAMILY)
                 .boxShadow(0.px, 0.px, 0.px, 0.px, null)
                 .attrsModifier {
                     attr("placeholder", "Email Address")
@@ -83,6 +88,7 @@ fun ContactForm(breakpoint: Breakpoint) {
         Label(
             attrs = Modifier
                 .classNames("form-label")
+                .fontFamily(FONT_FAMILY)
                 .toAttrs(),
             forId = "inputMessage"
         ) {
@@ -93,12 +99,13 @@ fun ContactForm(breakpoint: Breakpoint) {
                 .id("inputMessage")
                 .classNames("form-control")
                 .height(150.px)
+                .fontFamily(FONT_FAMILY)
                 .margin(bottom = 20.px)
                 .width(
                     if (breakpoint >= Breakpoint.MD) 500.px
                     else 250.px
                 )
-                .backgroundColor(Colors.LightGray)
+                .backgroundColor(Colors.White)
                 .boxShadow(0.px, 0.px, 0.px, 0.px, null)
                 .attrsModifier {
                     attr("placeholder", "Your Message")
@@ -114,6 +121,7 @@ fun ContactForm(breakpoint: Breakpoint) {
             Button(
                 attrs = MainButtonStyle.toModifier()
                     .height(40.px)
+                    .fontFamily(FONT_FAMILY)
                     .border(width = 0.px)
                     .borderRadius(r = 5.px)
                     .backgroundColor(Colors.DimGray)
