@@ -11,22 +11,22 @@ RUN apt-get update && apt-get install -y curl \
 # Copy project files
 COPY . .
 
-# Build the entire site (JS + JVM) — Gradle handles NPM automatically
+# Make Gradle wrapper executable
+RUN chmod +x ./gradlew
+
+# Build the entire site (JS + JVM)
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# Copy only the JVM JAR
-COPY --from=builder /app/site/build/libs/com.jar app.jar
+# Copy only the JVM JAR produced by Gradle
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 # Cloud Run will inject PORT
 ENV PORT=8080
 EXPOSE 8080
 
+# Run the app
 CMD ["java", "-jar", "app.jar"]
-
-
-
-
