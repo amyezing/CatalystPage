@@ -64,6 +64,8 @@ kotlin {
 
         }
         jsMain.dependencies {
+            implementation(npm("html5-qrcode", "2.3.8"))
+            implementation(npm("qrcode", "1.5.1"))
 
             implementation(libs.compose.runtime)
             implementation(libs.compose.html.core)
