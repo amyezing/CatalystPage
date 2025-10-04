@@ -11,14 +11,7 @@ RUN apt-get update && apt-get install -y curl \
 # Copy project files
 COPY . .
 
-# Change to site directory (where JS code lives)
-WORKDIR /app/site
-
-# Install NPM dependencies
-RUN npm install
-
-# Build the entire site (JS + JVM)
-WORKDIR /app
+# Build the entire site (JS + JVM) — Gradle handles NPM automatically
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------

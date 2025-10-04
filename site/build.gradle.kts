@@ -64,9 +64,6 @@ kotlin {
 
         }
         jsMain.dependencies {
-            implementation(npm("html5-qrcode", "2.3.8"))
-            implementation(npm("qrcode", "1.5.4"))
-
             implementation(libs.compose.runtime)
             implementation(libs.compose.html.core)
             implementation(libs.kobweb.core)
@@ -79,6 +76,8 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.serialization)
             implementation(npm("firebase", "11.10.0"))
+            implementation(npm("html5-qrcode", "2.3.8"))
+            implementation(npm("qrcode", "1.5.4"))
 
 
             // implementation(libs.kobwebx.markdown)
