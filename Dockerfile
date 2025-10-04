@@ -1,7 +1,16 @@
 # -------- Stage 1: Build --------
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
+
+# Copy all files
 COPY . .
+
+# Install npm dependencies for the frontend
+WORKDIR /app/site
+RUN npm install
+
+# Back to project root and build the Kotlin site
+WORKDIR /app
 RUN gradle :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
