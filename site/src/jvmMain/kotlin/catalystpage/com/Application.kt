@@ -14,6 +14,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -21,8 +22,9 @@ import kotlin.time.Duration.Companion.seconds
 import io.ktor.server.websocket.*
 
 fun main() {
-    embeddedServer(Netty, port = 8081, module = Application::module).start(wait = true)
-    println("Server running at http://localhost:8081")
+    val port = System.getenv("PORT")?.toInt() ?: 8080
+    embeddedServer(Netty, port = port, module = Application::module).start(wait = true)
+    println("Server running on port $port")
 
 }
 
@@ -40,7 +42,7 @@ fun Application.module() {
     }
 
     install(io.ktor.server.plugins.cors.routing.CORS) {
-        allowHost("localhost:8080", schemes = listOf("http"))
+        allowHost("catalystbeveragemanufacturing.com", schemes = listOf("https"))
         allowCredentials = true
 
         allowHeader("X-Firebase-Uid")
@@ -65,6 +67,10 @@ fun Application.module() {
     }
 
     routing {
+
+        get("/") {
+            call.respondText("Catalyst backend is running!")
+        }
         route("/api") {
             adminEmails()
             adminOrderRoutes()
@@ -95,7 +101,7 @@ fun Application.module() {
 
 
         }
-        staticFiles("/uploads", File("D:/catalyst/uploads"))
+//        staticFiles("/uploads", File("D:/catalyst/uploads"))
     }
 }
 
