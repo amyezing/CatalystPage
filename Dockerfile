@@ -6,13 +6,14 @@ WORKDIR /app
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
 
-# Fix line endings and make gradlew executable
-RUN apt-get update && apt-get install -y dos2unix \
-    && dos2unix gradlew \
-    && chmod +x gradlew
+# Install dos2unix
+RUN apt-get update && apt-get install -y dos2unix
 
 # Copy the rest of the project
 COPY . .
+
+# Fix line endings and make gradlew executable AFTER copying everything
+RUN dos2unix gradlew && chmod +x gradlew
 
 # Build JVM + JS site
 RUN ./gradlew :site:build --no-daemon
@@ -30,6 +31,5 @@ EXPOSE 8080
 
 # Run the app
 CMD ["java", "-jar", "app.jar"]
-
 
 
