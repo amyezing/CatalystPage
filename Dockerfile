@@ -1,4 +1,4 @@
-# -------- Stage 1: Build --------
+# -------- Stage 1: Builder --------
 FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
@@ -6,13 +6,13 @@ WORKDIR /app
 # Install utilities
 RUN apt-get update && apt-get install -y curl dos2unix && rm -rf /var/lib/apt/lists/*
 
-# Copy only gradlew and gradle wrapper first, fix permissions
+# Copy Gradle wrapper first for caching
 COPY gradlew .
 COPY gradle gradle
 RUN dos2unix gradlew && chmod +x gradlew
 
-# Copy the rest of the project
-COPY . .
+# Copy only package.json and package-lock.json for Node caching
+COPY site/package*.json ./site/
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -20,10 +20,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && node -v && npm -v \
     && rm -rf /var/lib/apt/lists/*
 
-# Download Gradle dependencies (cache)
+# Install Node dependencies (cached if package.json unchanged)
+RUN cd site && npm install
+
+# Copy the rest of the project
+COPY . .
+
+# Download Gradle dependencies (cached)
 RUN ./gradlew --no-daemon build -x test || true
 
-# Build the site
+# Build the Kobweb site
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
@@ -34,7 +40,7 @@ WORKDIR /app
 # Install bash
 RUN apt-get update && apt-get install -y bash && rm -rf /var/lib/apt/lists/*
 
-# Copy the built JAR
+# Copy the built JAR from builder stage
 COPY --from=builder /app/site/build/libs/$(ls /app/site/build/libs | grep -v 'metadata\|klib' | head -n1) app.jar
 
 # Cloud Run port
@@ -42,8 +48,6 @@ ENV PORT=8080
 EXPOSE 8080
 
 ENTRYPOINT ["java","-jar","app.jar"]
-
-
 
 
 
