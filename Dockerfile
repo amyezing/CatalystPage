@@ -3,41 +3,42 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Copy Gradle wrapper and build files first for caching
+# Copy Gradle wrapper and build files first (for caching)
 COPY gradlew .
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
 
-# Install Node.js (needed for Kobweb front-end)
+# Make gradlew executable
+RUN chmod +x ./gradlew
+
+# Install Node.js (needed for Kobweb)
 RUN apt-get update && \
     apt-get install -y curl gnupg apt-transport-https && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+    apt-get install -y nodejs && \
+    node -v && npm -v
 
-# Download dependencies
-RUN chmod +x ./gradlew && ./gradlew dependencies --no-daemon
-
-# Copy full project
+# Copy the rest of the project
 COPY . .
 
-# Make gradlew executable (after COPY to avoid permission issues)
+# Ensure gradlew is executable again (COPY can overwrite permissions)
 RUN chmod +x ./gradlew
 
-# Build the project
+# Build the Kobweb project
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
-FROM eclipse-temurin:17-jdk-jammy
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Copy built JAR from builder
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+# Copy built files from builder
+COPY --from=builder /app/site/build/ /app/site/
 
-# Cloud Run standard port
-ENV PORT=8080
+# Expose the default Kobweb port
 EXPOSE 8080
 
 # Run the app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "/app/site/site.jar"]
+
 
