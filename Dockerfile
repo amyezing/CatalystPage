@@ -10,16 +10,16 @@ RUN apt-get update && \
     apt-get install -y nodejs && \
     node -v && npm -v
 
-# Copy Gradle wrapper and build files first (for caching)
+# Copy ONLY the gradle wrapper and make it executable first
 COPY gradlew .
+RUN chmod +x ./gradlew
+
+# Copy gradle configuration files
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
 
-# Make gradlew executable
-RUN chmod +x ./gradlew
-
-# Copy the rest of the project
-COPY . .
+# Copy source code
+COPY site ./site
 
 # Build the Kobweb project (produces fat JAR)
 RUN ./gradlew :site:build --no-daemon
