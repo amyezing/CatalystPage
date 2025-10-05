@@ -3,27 +3,33 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Install Node.js
-RUN apt-get update && \
-    apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+# Copy Gradle wrapper and build files first (for caching)
+COPY gradlew .
+COPY build.gradle.kts settings.gradle.kts ./
+COPY gradle ./gradle
 
-# Copy everything
+# Fix Windows permission issue
+RUN chmod +x ./gradlew
+
+# Install Node.js (needed for Kobweb frontend)
+RUN apt-get update && \
+    apt-get install -y curl gnupg apt-transport-https && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g kobweb-cli
+
+# Copy the rest of the project
 COPY . .
 
-# Use gradle directly instead of gradlew to avoid permission issues
-RUN gradle :site:build --no-daemon
+# Build the project (adjust if you use `gradlew kobwebExport`)
+RUN ./gradlew kobwebExport --stacktrace
 
-# -------- Stage 2: Runtime --------
-FROM openjdk:17-jdk-slim
+# -------- Stage 2: Runner --------
+FROM nginx:stable-alpine
 
-WORKDIR /app
+# Copy exported site from builder
+COPY --from=builder /app/.kobweb/site /usr/share/nginx/html
 
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 
-COPY --from=builder /app/site/build/libs/site-all.jar ./site-all.jar
-
-EXPOSE 8080
-
-CMD ["java", "-jar", "site-all.jar"]
