@@ -27,7 +27,7 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Copy the JVM JAR (confirm the exact name!)
-COPY --from=builder /app/site/build/libs/site-*.jar app.jar
+COPY --from=builder /app/site/build/libs/site-1.0-SNAPSHOT.jar app.jar
 
 # Cloud Run will inject PORT
 ENV PORT=8080
