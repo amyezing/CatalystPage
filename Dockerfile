@@ -1,35 +1,39 @@
-# -------- Stage 1: Builder --------
+# -------- Stage 1: Builder - Optimized for Caching --------
 FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Copy the whole project first
-COPY . .
+# 1. Copy only the files needed to download dependencies
+COPY build.gradle.kts settings.gradle.kts gradlew ./
+COPY gradle ./gradle
 
-# Ensure gradlew is executable
-RUN chmod +x gradlew && ls -l gradlew
+# 2. Make the gradlew script executable
+RUN chmod +x ./gradlew
 
-# Download Gradle dependencies (optional cache step)
-RUN ./gradlew --no-daemon build -x test || true
+# 3. Download dependencies. This layer will be cached as long as your build files don't change.
+# Using 'dependencies' is often better than 'build -x test || true' for just fetching dependencies.
+RUN ./gradlew dependencies --no-daemon
 
-# Build the Kobweb site
+# 4. Copy the rest of your source code
+COPY src ./src
+
+# 5. Now, build the application with the already downloaded dependencies
 RUN ./gradlew :site:build --no-daemon
 
-# -------- Stage 2: Runtime --------
+# -------- Stage 2: Runtime - Final Image --------
 FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
-# Copy the built JAR from builder stage
-COPY --from=builder /app/site/build/libs/$(ls /app/site/build/libs | grep -v 'metadata\|klib' | head -n1) app.jar
+# Copy the built JAR from the builder stage. Using a wildcard is often more reliable.
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
-# Cloud Run port
+# Standard Cloud Run Environment Variables
 ENV PORT=8080
 EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","app.jar"]
-
-
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
 
 
