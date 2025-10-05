@@ -8,25 +8,30 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get install -y nodejs \
     && node -v && npm -v
 
-# Copy project files
+# Copy all project files
 COPY . .
 
 # Make Gradle wrapper executable
 RUN chmod +x ./gradlew
 
-# Build the entire site (JS + JVM)
+# Install NPM dependencies (inside site folder)
+WORKDIR /app/site
+RUN npm install
+
+# Build the entire project (JS + JVM)
+WORKDIR /app
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# Copy only the JVM JAR produced by Gradle
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+# Copy the JVM JAR (confirm the exact name!)
+COPY --from=builder /app/site/build/libs/site-*.jar app.jar
 
 # Cloud Run will inject PORT
 ENV PORT=8080
 EXPOSE 8080
 
-# Run the app
 CMD ["java", "-jar", "app.jar"]
+
