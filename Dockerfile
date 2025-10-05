@@ -11,29 +11,29 @@ RUN apt-get update && apt-get install -y curl \
     && node -v && npm -v
 
 # ------------------------------
-# Copy Gradle wrapper and config first
+# Copy Gradle wrapper and config first (for caching)
 # ------------------------------
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
-
-# Make Gradle wrapper executable
 RUN chmod +x ./gradlew
 
 # ------------------------------
-# Copy JS dependencies and install
+# Copy JS dependencies first (for caching npm install)
 # ------------------------------
 WORKDIR /app/site
 COPY site/package*.json ./
 RUN npm install
 
+# ------------------------------
 # Copy the rest of the site JS code
+# ------------------------------
 COPY site/ ./
 
 # ------------------------------
-# Build JS + JVM site
+# Copy remaining project files and build JVM + JS
 # ------------------------------
 WORKDIR /app
-COPY . .   # copy remaining project files
+COPY . .
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
@@ -49,3 +49,4 @@ EXPOSE 8080
 
 # Run the app
 CMD ["java", "-jar", "app.jar"]
+
