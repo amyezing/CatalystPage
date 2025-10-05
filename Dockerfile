@@ -3,23 +3,17 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Install Node.js and dos2unix for Windows line ending conversion
+# Install Node.js
 RUN apt-get update && \
-    apt-get install -y curl dos2unix && \
+    apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
 # Copy everything
 COPY . .
 
-# Fix line endings and permissions for gradlew
-RUN dos2unix gradlew && chmod +x gradlew
-
-# Verify it works
-RUN ./gradlew --version
-
-# Build the Kobweb project
-RUN ./gradlew :site:build --no-daemon
+# Use gradle directly instead of gradlew to avoid permission issues
+RUN gradle :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
