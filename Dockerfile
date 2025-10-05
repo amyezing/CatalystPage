@@ -5,24 +5,17 @@ WORKDIR /app
 
 # Install Node.js first (needed for Kobweb)
 RUN apt-get update && \
-    apt-get install -y curl gnupg apt-transport-https && \
+    apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Copy only what we need in stages
-COPY gradlew .
-COPY gradle ./gradle
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-COPY site ./site
+# Copy everything
+COPY . .
 
-# Make gradlew executable
-RUN chmod +x ./gradlew
+# Force make gradlew executable and test it
+RUN chmod +x ./gradlew && ls -la ./gradlew
 
-# Verify permissions and run gradle
-RUN ls -la ./gradlew && ./gradlew --version
-
-# Build the Kobweb project (produces fat JAR)
+# Build the Kobweb project
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
@@ -30,16 +23,12 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Install certificates for HTTPS support
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Copy the built fat JAR from the builder stage
 COPY --from=builder /app/site/build/libs/site-all.jar ./site-all.jar
 
-# Expose the default Cloud Run port
 EXPOSE 8080
 
-# Run the app
 CMD ["java", "-jar", "site-all.jar"]
 
 
