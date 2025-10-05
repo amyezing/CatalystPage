@@ -3,6 +3,13 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
+# Install Node.js first (needed for Kobweb)
+RUN apt-get update && \
+    apt-get install -y curl gnupg apt-transport-https && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    node -v && npm -v
+
 # Copy Gradle wrapper and build files first (for caching)
 COPY gradlew .
 COPY build.gradle.kts settings.gradle.kts ./
@@ -11,18 +18,8 @@ COPY gradle ./gradle
 # Make gradlew executable
 RUN chmod +x ./gradlew
 
-# Install Node.js (needed for Kobweb)
-RUN apt-get update && \
-    apt-get install -y curl gnupg apt-transport-https && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    node -v && npm -v
-
 # Copy the rest of the project
 COPY . .
-
-# Ensure gradlew is executable again (COPY can overwrite permissions)
-RUN chmod +x ./gradlew
 
 # Build the Kobweb project (produces fat JAR)
 RUN ./gradlew :site:build --no-daemon
