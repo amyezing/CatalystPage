@@ -15,16 +15,19 @@ RUN apt-get update && \
     apt-get install -y nodejs && \
     node -v && npm -v
 
-# 3. Download dependencies to cache this layer
-RUN chmod +x ./gradlew && ./gradlew dependencies --no-daemon
-
-# 4. Copy the full project
-COPY . .
-
-# 5. Ensure gradlew is executable (important!)
+# 3. Make gradlew executable
 RUN chmod +x ./gradlew
 
-# 6. Build the site
+# 4. Download dependencies (caches this layer)
+RUN ./gradlew dependencies --no-daemon
+
+# 5. Copy the full project
+COPY . .
+
+# 6. Ensure gradlew is executable again
+RUN chmod +x ./gradlew
+
+# 7. Build the site
 RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime - Final Image --------
@@ -41,8 +44,3 @@ EXPOSE 8080
 
 # Run the app
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
-
-
-
-
