@@ -14,7 +14,7 @@ COPY . .
 # Make Gradle wrapper executable
 RUN chmod +x ./gradlew
 
-# Install NPM dependencies (inside site folder)
+# Install NPM dependencies inside the site folder
 WORKDIR /app/site
 RUN npm install
 
@@ -26,12 +26,13 @@ RUN ./gradlew :site:build --no-daemon
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# Copy the JVM JAR (confirm the exact name!)
-COPY --from=builder /app/site/build/libs/site-1.0-SNAPSHOT.jar app.jar
+# Copy the JVM JAR (wildcard ensures it works regardless of version)
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 # Cloud Run will inject PORT
 ENV PORT=8080
 EXPOSE 8080
 
+# Start the application
 CMD ["java", "-jar", "app.jar"]
 
