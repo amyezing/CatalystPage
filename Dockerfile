@@ -7,17 +7,20 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y curl gnupg apt-transport-https && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    node -v && npm -v
+    apt-get install -y nodejs
 
-# Copy everything
-COPY . .
+# Copy only what we need in stages
+COPY gradlew .
+COPY gradle ./gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+COPY site ./site
 
-# Force make gradlew executable and verify
-RUN chmod +x ./gradlew && \
-    ls -la ./gradlew && \
-    echo "Checking if gradlew is executable..." && \
-    ./gradlew --version || echo "Gradlew is not executable"
+# Make gradlew executable
+RUN chmod +x ./gradlew
+
+# Verify permissions and run gradle
+RUN ls -la ./gradlew && ./gradlew --version
 
 # Build the Kobweb project (produces fat JAR)
 RUN ./gradlew :site:build --no-daemon
@@ -38,6 +41,5 @@ EXPOSE 8080
 
 # Run the app
 CMD ["java", "-jar", "site-all.jar"]
-
 
 
