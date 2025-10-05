@@ -5,7 +5,9 @@ WORKDIR /app
 # Copy Gradle wrapper and config first (for caching)
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
-RUN chmod +x ./gradlew
+
+# Make gradlew executable and fix line endings
+RUN chmod +x gradlew && dos2unix gradlew || true
 
 # Copy all project files
 COPY . .
