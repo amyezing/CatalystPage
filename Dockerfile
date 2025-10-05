@@ -3,29 +3,17 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Install Node.js (needed for Kobweb)
+# Install Node.js
 RUN apt-get update && \
     apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# First, copy just the gradle wrapper and make it executable
-COPY gradlew .
-RUN dos2unix gradlew && chmod +x gradlew
+# Copy everything
+COPY . .
 
-# Copy gradle directory and config files
-COPY gradle ./gradle
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-
-# Copy the site source code
-COPY site ./site
-
-# Verify gradlew works
-RUN ./gradlew --version
-
-# Build the Kobweb project
-RUN ./gradlew :site:build --no-daemon
+# Use gradle directly instead of gradlew to avoid permission issues
+RUN gradle :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
