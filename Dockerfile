@@ -6,8 +6,10 @@ WORKDIR /app
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
 
-# Make gradlew executable and fix line endings
-RUN chmod +x gradlew && dos2unix gradlew || true
+# Fix line endings and permissions
+RUN apt-get update && apt-get install -y dos2unix \
+    && dos2unix gradlew \
+    && chmod +x gradlew
 
 # Copy all project files
 COPY . .
