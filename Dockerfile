@@ -2,18 +2,21 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 
-# Copy Gradle wrapper and config first (for caching)
+# Install dos2unix for line ending fixes
+RUN apt-get update && apt-get install -y dos2unix
+
+# Copy only Gradle wrapper and build scripts first (for caching)
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
 
-# Install dos2unix
-RUN apt-get update && apt-get install -y dos2unix
+# Fix line endings and make gradlew executable
+RUN dos2unix gradlew && chmod +x gradlew
+
+# Download dependencies (this layer will be cached unless build.gradle changes)
+RUN ./gradlew --no-daemon build -x test || true
 
 # Copy the rest of the project
 COPY . .
-
-# Fix line endings and make gradlew executable AFTER copying everything
-RUN dos2unix gradlew && chmod +x gradlew
 
 # Build JVM + JS site
 RUN ./gradlew :site:build --no-daemon
@@ -31,5 +34,4 @@ EXPOSE 8080
 
 # Run the app
 CMD ["java", "-jar", "app.jar"]
-
 
