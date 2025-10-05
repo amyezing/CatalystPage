@@ -2,37 +2,37 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 
-# Install Node.js (for JS build) + dos2unix for line endings
-RUN apt-get update && apt-get install -y dos2unix curl \
+# Install Node.js + dos2unix (for line ending fix)
+RUN apt-get update && apt-get install -y curl dos2unix \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && node -v && npm -v \
     && rm -rf /var/lib/apt/lists/*
 
 # -------------------------------
-# STEP 1: Copy only files needed for Gradle dependencies
+# STEP 1: Copy Gradle wrapper + config
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
 
-# Fix line endings and make gradlew executable
+# Fix line endings + make executable
 RUN dos2unix gradlew && chmod +x gradlew
 
-# Download Gradle dependencies (cached unless build.gradle changes)
+# Download Gradle dependencies (cache)
 RUN ./gradlew --no-daemon build -x test || true
 
 # -------------------------------
-# STEP 2: Copy package.json and package-lock.json (Node.js deps)
+# STEP 2: Copy Node.js dependencies files
 COPY site/package.json site/package-lock.json ./site/
 
-# Install Node.js dependencies (cached unless package.json changes)
+# Install Node.js dependencies
 RUN cd site && npm ci
 
 # -------------------------------
 # STEP 3: Copy the rest of the project
 COPY . .
 
-# Make sure gradlew is still executable
-RUN chmod +x gradlew
+# Fix gradlew again (in case it was overwritten)
+RUN dos2unix gradlew && chmod +x gradlew
 
 # Build JVM + JS site
 RUN ./gradlew :site:build --no-daemon
@@ -50,6 +50,7 @@ EXPOSE 8080
 
 # Run the app
 CMD ["java", "-jar", "app.jar"]
+
 
 
 
