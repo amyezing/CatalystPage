@@ -3,26 +3,26 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# 1. Copy Gradle wrapper and build files first
+# 1. Copy Gradle wrapper and build files first (for caching)
 COPY gradlew .
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
 
-# 2. Make gradlew executable
-RUN chmod +x ./gradlew
-
-# 3. Install Node.js (needed for Kobweb/JS builds)
+# 2. Install Node.js (needed for Kobweb/JS builds)
 RUN apt-get update && \
     apt-get install -y curl gnupg apt-transport-https && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     node -v && npm -v
 
-# 4. Download dependencies to cache this layer
-RUN ./gradlew dependencies --no-daemon
+# 3. Download dependencies to cache this layer
+RUN chmod +x ./gradlew && ./gradlew dependencies --no-daemon
 
-# 5. Copy source code
-COPY src ./src
+# 4. Copy the full project
+COPY . .
+
+# 5. Ensure gradlew is executable (important!)
+RUN chmod +x ./gradlew
 
 # 6. Build the site
 RUN ./gradlew :site:build --no-daemon
