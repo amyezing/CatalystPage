@@ -5,8 +5,8 @@ RUN gradle :site:build --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-# Copy from Kobweb's executable JAR location
-COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
+# FIX: Copy from the correct Gradle build output directory
+COPY --from=builder /app/site/build/libs/com.jar app.jar
 
 # Create minimal .env file
 RUN mkdir -p /app && \

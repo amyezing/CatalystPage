@@ -20,6 +20,7 @@ steps:
         
         echo "=== Checking if Kobweb JAR exists ==="
         ls -la /app/site/.kobweb/site/system/com.jar || echo "Kobweb JAR not found"
+        
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
