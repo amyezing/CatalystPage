@@ -62,7 +62,7 @@ steps:
     args: ['push', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA']
 
   # --- DEPLOY SERVICES ---
-  # Deploy Backend
+    # Deploy Backend
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'deploy-backend'
     waitFor: ['push-backend']
@@ -73,7 +73,7 @@ steps:
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '8080',
-      '--set-env-vars', 'DB_HOST=sm://$PROJECT_ID/db-connection-name,DB_PORT=3306,DB_NAME=catalystdb,DB_USER=sm://$PROJECT_ID/db-user,DB_PASS=sm://$PROJECT_ID/db-password,GCS_BUCKET_NAME=catalyst-cloud-storage,GCS_CREDENTIALS_PATH='
+      '--set-env-vars', 'DB_HOST=sm://$PROJECT_ID/db-connection-name,DB_PORT=3306,DB_NAME=catalystdb,DB_USER=sm://$PROJECT_ID/db-user,DB_PASS=sm://$PROJECT_ID/db-password,GCS_BUCKET_NAME=catalyst-cloud-storage,GCS_CREDENTIALS_PATH=',
       '--add-cloudsql-instances', 'ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db'
     ]
 
