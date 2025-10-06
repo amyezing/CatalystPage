@@ -17,15 +17,20 @@ steps:
         chmod +x ./gradlew
         ./gradlew projects --no-daemon
 
-  # --- BACKEND BUILD ---
+    # --- BACKEND BUILD ---
   - name: 'gradle:8.8-jdk17'
     id: 'build-backend'
-    waitFor: ['debug']  # ← ADD waitFor HERE
+    waitFor: ['debug']
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         chmod +x ./gradlew
+        # Try one of these:
+        ./gradlew :jvmApp:build --no-daemon
+        # OR
+        ./gradlew jvmJar --no-daemon
+        # OR
         ./gradlew build --no-daemon
 
   # Build Backend Docker image - WAITS for backend build
