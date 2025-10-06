@@ -1,0 +1,6 @@
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY site/build/libs/site-all.jar ./site-all.jar
+EXPOSE 8080
+CMD ["java", "-jar", "site-all.jar"]
