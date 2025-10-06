@@ -3,19 +3,8 @@ FROM nginx:alpine
 # Copy built static site
 COPY site/.kobweb/site/ /usr/share/nginx/html/
 
-# Simple nginx config for port 8080
-RUN echo 'events {} \n\
-http { \n\
-  server { \n\
-    listen 8080; \n\
-    root /usr/share/nginx/html; \n\
-    index index.html; \n\
-    \n\
-    location / { \n\
-      try_files $uri $uri/ /index.html; \n\
-    } \n\
-  } \n\
-}' > /etc/nginx/nginx.conf
+# Replace default nginx config to use port 8080
+RUN sed -i 's/listen\(.*\)80;/listen 8080;/' /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
 
