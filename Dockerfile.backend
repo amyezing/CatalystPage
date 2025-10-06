@@ -7,9 +7,18 @@ RUN gradle :site:jvmJar --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-
-# Copy the actual JAR file that was created
 COPY --from=builder /app/site/build/libs/com.jar app.jar
+
+# Create minimal .env file to prevent dotenv from crashing
+RUN mkdir -p /app && \
+    echo "DB_HOST=localhost" > /app/.env && \
+    echo "DB_PORT=3306" >> /app/.env && \
+    echo "DB_NAME=catalystdb" >> /app/.env && \
+    echo "DB_USER=root" >> /app/.env && \
+    echo "DB_PASS=" >> /app/.env && \
+    echo "GCS_BUCKET_NAME=dummy" >> /app/.env && \
+    echo "GCS_CREDENTIALS_PATH=dummy" >> /app/.env && \
+    echo "FIREBASE_API_KEY=dummy" >> /app/.env
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
