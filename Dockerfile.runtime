@@ -1,31 +1,11 @@
-FROM nginx:alpine
+FROM node:20-alpine
 
-# Install envsubst to replace environment variables
-RUN apk add --no-cache gettext
+# Install a simple static server
+RUN npm install -g serve
 
-# Copy the static site
-COPY site/.kobweb/site/ /usr/share/nginx/html/
+# Copy your built site
+COPY site/.kobweb/site/ /app
+WORKDIR /app
 
-# Create nginx config template with PORT placeholder
-RUN echo 'events {} \n\
-http { \n\
-  server { \n\
-    listen ${PORT}; \n\
-    root /usr/share/nginx/html; \n\
-    index index.html; \n\
-    \n\
-    location / { \n\
-      try_files $uri $uri/ /index.html; \n\
-    } \n\
-  } \n\
-}' > /etc/nginx/nginx.conf.template
-
-# Create startup script that substitutes PORT
-RUN echo '#!/bin/sh \n\
-envsubst "\$PORT" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf \n\
-exec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
-    chmod +x /docker-entrypoint.sh
-
-EXPOSE 8080
-
-CMD ["/docker-entrypoint.sh"]
+# Serve on the port provided by Cloud Run
+CMD ["serve", "-s", ".", "-l", "tcp://0.0.0.0:8080"]

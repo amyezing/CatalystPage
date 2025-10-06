@@ -34,7 +34,8 @@ steps:
       '--image', 'gcr.io/$PROJECT_ID/catalyst-page:$COMMIT_SHA',
       '--region', 'asia-southeast1',
       '--platform', 'managed',
-      '--allow-unauthenticated'
+      '--allow-unauthenticated',
+      '--port', '8080'  # ← ADD THIS LINE
     ]
 
 images:
