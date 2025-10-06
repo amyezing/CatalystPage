@@ -1,15 +1,14 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
-
-# Build the JVM backend
-RUN gradle :site:jvmJar --no-daemon
+RUN gradle :site:build --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=builder /app/site/build/libs/com.jar app.jar
+# Copy from Kobweb's executable JAR location
+COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
 
-# Create minimal .env file to prevent dotenv from crashing
+# Create minimal .env file
 RUN mkdir -p /app && \
     echo "DB_HOST=localhost" > /app/.env && \
     echo "DB_PORT=3306" >> /app/.env && \

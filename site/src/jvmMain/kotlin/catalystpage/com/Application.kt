@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
 import io.ktor.server.websocket.*
+import kotlinx.coroutines.launch
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
@@ -29,7 +30,16 @@ fun main() {
 }
 
 fun Application.module() {
-    DbConnection.connect()
+
+
+    launch {
+        try {
+            DbConnection.connect()
+            println("Database connected")
+        } catch (e: Exception) {
+            print("Database connection failed: ${e.message}")
+        }
+    }
 
     install(ContentNegotiation) {
         json(Json {
@@ -76,6 +86,10 @@ fun Application.module() {
         get("/test-cors") {
             call.respondText("CORS test - backend is running")
         }
+        get("/health") {
+            call.respond(mapOf("status" to "running", "timestamp" to System.currentTimeMillis()))
+        }
+
 
         route("/api") {
             adminEmails()
