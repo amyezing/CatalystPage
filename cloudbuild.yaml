@@ -11,6 +11,15 @@ steps:
       - |
         chmod +x ./gradlew
         ./gradlew :site:build --no-daemon
+        
+        echo "=== ALL JAR FILES ==="
+        find . -name "*.jar" -type f
+        
+        echo "=== Checking Kobweb system directory ==="
+        ls -la /app/site/.kobweb/site/system/ || echo "Kobweb system directory not found"
+        
+        echo "=== Checking if Kobweb JAR exists ==="
+        ls -la /app/site/.kobweb/site/system/com.jar || echo "Kobweb JAR not found"
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -73,7 +82,7 @@ steps:
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '8080',
-      '--set-env-vars', 'DB_HOST=sm://$PROJECT_ID/db-connection-name,DB_PORT=3306,DB_NAME=catalystdb,DB_USER=sm://$PROJECT_ID/db-user,DB_PASS=sm://$PROJECT_ID/db-password,GCS_BUCKET_NAME=catalyst-cloud-storage,GCS_CREDENTIALS_PATH=,FIREBASE_API_KEY=dummy,FIREBASE_AUTH_DOMAIN=dummy,FIREBASE_PROJECT_ID=dummy,FIREBASE_STORAGE_BUCKET=dummy,FIREBASE_MESSAGING_SENDER_ID=dummy,FIREBASE_APP_ID=dummy',
+      '--set-env-vars', 'DB_HOST=sm://$PROJECT_ID/db-connection-name,DB_PORT=3306,DB_NAME=catalystdb,DB_USER=sm://$PROJECT_ID/db-user,DB_PASS=sm://$PROJECT_ID/db-password,GCS_BUCKET_NAME=catalyst-cloud-storage,GCS_CREDENTIALS_PATH=,FIREBASE_CONFIG=sm://$PROJECT_ID/firebase-config',
       '--add-cloudsql-instances', 'ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db'
     ]
 

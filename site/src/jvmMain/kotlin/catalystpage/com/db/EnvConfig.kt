@@ -1,6 +1,7 @@
 package catalystpage.com.db
 
 import io.github.cdimascio.dotenv.Dotenv
+import kotlinx.serialization.json.Json
 import java.io.File
 
 object EnvConfig {
@@ -29,13 +30,23 @@ object EnvConfig {
     val dbPort: Int = (getConfig("DB_PORT")?.toInt() ?: 3306)
     val dbName: String = getConfig("DB_NAME") ?: "catalystdb"
 
+
+    private val firebaseConfig: Map<String, String> by lazy {
+        getConfig("FIREBASE_CONFIG")?.let { jsonString ->
+            try {
+                Json.decodeFromString<Map<String, String>>(jsonString)
+            } catch (e: Exception) {
+                emptyMap()
+            }
+        } ?: emptyMap()
+    }
     // Firebase configuration
-    val firebaseApiKey: String = getConfig("FIREBASE_API_KEY") ?: ""
-    val firebaseAuthDomain: String = getConfig("FIREBASE_AUTH_DOMAIN") ?: ""
-    val firebaseProjectId: String = getConfig("FIREBASE_PROJECT_ID") ?: ""
-    val firebaseStorageBucket: String = getConfig("FIREBASE_STORAGE_BUCKET") ?: ""
-    val firebaseMessagingSenderId: String = getConfig("FIREBASE_MESSAGING_SENDER_ID") ?: ""
-    val firebaseAppId: String = getConfig("FIREBASE_APP_ID") ?: ""
+    val firebaseApiKey: String = firebaseConfig["apiKey"] ?: ""
+    val firebaseAuthDomain: String = firebaseConfig["authDomain"] ?: ""
+    val firebaseProjectId: String = firebaseConfig["projectId"] ?: ""
+    val firebaseStorageBucket: String = firebaseConfig["storageBucket"] ?: ""
+    val firebaseMessagingSenderId: String = firebaseConfig["messagingSenderId"] ?: ""
+    val firebaseAppId: String = firebaseConfig["appId"] ?: ""
 
     // GCS configuration - handle required fields
     val gcsBucketName: String = getConfig("GCS_BUCKET_NAME")
