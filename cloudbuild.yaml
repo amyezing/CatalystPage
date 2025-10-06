@@ -9,29 +9,30 @@ steps:
     args:
       - '-c'
       - |
-        echo "=== Listing directories ==="
-        ls -la
-        echo "=== Finding JAR files ==="
+        echo "=== Finding backend source code ==="
+        find . -name "DbConnection.kt" -o -name "Application.kt" -o -name "Hikari*" 2>/dev/null
+        echo "=== All source directories ==="
+        find . -type d -name "src" | grep -v node_modules
+        echo "=== Build outputs ==="
         find . -name "*.jar" -type f
-        echo "=== Gradle projects ==="
-        chmod +x ./gradlew
-        ./gradlew projects --no-daemon
 
-    # --- BACKEND BUILD ---
+  # --- BACKEND BUILD ---
   - name: 'gradle:8.8-jdk17'
     id: 'build-backend'
-    waitFor: ['debug']
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         chmod +x ./gradlew
-        # Try one of these:
-        ./gradlew :jvmApp:build --no-daemon
-        # OR
-        ./gradlew jvmJar --no-daemon
-        # OR
-        ./gradlew build --no-daemon
+        ./gradlew :site:build --no-daemon  # Build the site module specifically  # --- BACKEND BUILD ---
+  - name: 'gradle:8.8-jdk17'
+    id: 'build-backend'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        chmod +x ./gradlew
+        ./gradlew :site:build --no-daemon  # Build the site module specifically
 
   # Build Backend Docker image - WAITS for backend build
   - name: 'gcr.io/cloud-builders/docker'

@@ -1,16 +1,17 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
-
-# Copy everything
 COPY . .
 
-RUN gradle build --no-daemon
+# Build the site module (includes both frontend and backend)
+RUN gradle :site:build --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy the JAR file - adjust path based on your module
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Try different possible JAR locations
+COPY --from=builder /app/site/build/libs/*.jar app.jar || \
+COPY --from=builder /app/build/libs/*.jar app.jar || \
+COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
