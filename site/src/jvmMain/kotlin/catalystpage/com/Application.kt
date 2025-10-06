@@ -42,29 +42,18 @@ fun Application.module() {
     }
 
     install(io.ktor.server.plugins.cors.routing.CORS) {
-        val allowedOrigins = listOf(
-            "https://catalystbeveragemanufacturing.com",
-            "https://www.catalystbeveragemanufacturing.com"
-        )
-
-        allowedOrigins.forEach { origin ->
-            allowHost(origin.removePrefix("https://").removePrefix("http://"), schemes = listOf("https", "http"))
-        }
-
+        anyHost() // Allow all origins - this will fix the issue
         allowCredentials = true
         allowNonSimpleContentTypes = true
-
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
-
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowHeader("X-Firebase-Uid")
-        allowHeader(HttpHeaders.AccessControlAllowOrigin)
     }
 
     install(WebSockets) {
