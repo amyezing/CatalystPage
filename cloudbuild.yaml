@@ -2,8 +2,10 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
+  # --- FRONTEND BUILD ---
   # Build the Kobweb application
   - name: 'gradle:8.8-jdk17'
+    id: 'build-frontend'
     entrypoint: 'bash'
     args:
       - '-c'
@@ -14,29 +16,71 @@ steps:
         apt-get install -y nodejs && \
         gradle :site:build --no-daemon
 
-  # Build and push Docker image
+  # Build and push Frontend Docker image
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-frontend-image'
     args: [
       'build',
-      '-t', 'gcr.io/$PROJECT_ID/catalyst-page:$COMMIT_SHA',
-      '-f', 'Dockerfile.runtime',
+      '-t', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
+      '-f', 'Dockerfile.frontend',
       '.'
     ]
 
-  # Push the image
+  # Push the Frontend image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/catalyst-page:$COMMIT_SHA']
+    id: 'push-frontend'
+    args: ['push', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA']
 
-  # Deploy to Cloud Run
+  # Deploy Frontend to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'deploy-frontend'
     args: [
-      'run', 'deploy', 'catalyst-page',
-      '--image', 'gcr.io/$PROJECT_ID/catalyst-page:$COMMIT_SHA',
+      'run', 'deploy', 'catalyst-frontend',
+      '--image', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
       '--region', 'asia-southeast1',
       '--platform', 'managed',
       '--allow-unauthenticated',
-      '--port', '8080'  # ← ADD THIS LINE
+      '--port', '8080'
+    ]
+
+  # --- BACKEND BUILD ---
+  # Build Backend application
+  - name: 'gradle:8.8-jdk17'
+    id: 'build-backend'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        cd catalyst-backend && \
+        gradle build --no-daemon
+
+  # Build and push Backend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-backend-image'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
+      '-f', 'Dockerfile.backend',
+      '.'
+    ]
+
+  # Push the Backend image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-backend'
+    args: ['push', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA']
+
+  # Deploy Backend to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'deploy-backend'
+    args: [
+      'run', 'deploy', 'catalyst-backend',
+      '--image', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
+      '--region', 'asia-southeast1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '8080'
     ]
 
 images:
-  - 'gcr.io/$PROJECT_ID/catalyst-page:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA'
