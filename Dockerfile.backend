@@ -6,16 +6,8 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Try multiple possible JAR locations
-COPY --from=builder /app/site/build/libs/com.jar app.jar
-
-# If the above doesn't work, Kobweb might create the JAR elsewhere
-# COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
-
-# Debug: Check what we actually copied
-RUN ls -la /app/ && \
-    echo "=== Checking JAR contents ===" && \
-    jar tf app.jar 2>/dev/null | head -20 || echo "Not a valid JAR file"
+# Try the JVM JAR instead
+COPY --from=builder /app/site/build/libs/site-jvm-1.0-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
