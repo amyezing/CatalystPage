@@ -2,20 +2,6 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # --- DEBUG STRUCTURE ---
-  - name: 'gradle:8.8-jdk17'
-    id: 'debug-structure'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "=== Finding backend source code ==="
-        find . -name "DbConnection.kt" -o -name "Application.kt" -o -name "Hikari*" 2>/dev/null
-        echo "=== All source directories ==="
-        find . -type d -name "src" | grep -v node_modules
-        echo "=== Build outputs ==="
-        find . -name "*.jar" -type f
-
   # --- BACKEND BUILD ---
   - name: 'gradle:8.8-jdk17'
     id: 'build-backend'
