@@ -14,6 +14,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
@@ -25,35 +26,39 @@ fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
     embeddedServer(Netty, port = port, module = Application::module).start(wait = true)
     println("Server running on port $port")
-
 }
 
-
 fun Application.module() {
-
     DbConnection.connect()
+
     install(ContentNegotiation) {
         json(Json {
             ignoreUnknownKeys = true
             isLenient = true
             prettyPrint = false
         })
-
     }
 
+    // CORS CONFIGURATION - THIS IS ENOUGH
     install(io.ktor.server.plugins.cors.routing.CORS) {
-        anyHost() // Allow all origins - this will fix the issue
+        anyHost() // Allow all origins
         allowCredentials = true
         allowNonSimpleContentTypes = true
+
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Head)
+
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowHeader("X-Firebase-Uid")
+        allowHeader(HttpHeaders.AccessControlAllowOrigin)
+        allowHeader(HttpHeaders.AccessControlAllowHeaders)
+        allowHeader(HttpHeaders.AccessControlAllowMethods)
     }
 
     install(WebSockets) {
@@ -64,10 +69,14 @@ fun Application.module() {
     }
 
     routing {
-
         get("/") {
             call.respondText("Catalyst backend is running!")
         }
+
+        get("/test-cors") {
+            call.respondText("CORS test - backend is running")
+        }
+
         route("/api") {
             adminEmails()
             adminOrderRoutes()
@@ -95,10 +104,6 @@ fun Application.module() {
             userEcoPointsRoutes(UserEcoPointsService())
             userRoutes()
             zoneRoutes()
-
-
         }
-//        staticFiles("/uploads", File("D:/catalyst/uploads"))
     }
 }
-
