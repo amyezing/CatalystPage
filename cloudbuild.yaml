@@ -4,7 +4,7 @@ options:
 steps:
   # --- DEBUG STRUCTURE ---
   - name: 'gradle:8.8-jdk17'
-    id: 'debug'
+    id: 'debug-structure'
     entrypoint: 'bash'
     args:
       - '-c'
@@ -19,22 +19,15 @@ steps:
   # --- BACKEND BUILD ---
   - name: 'gradle:8.8-jdk17'
     id: 'build-backend'
+    waitFor: ['debug-structure']
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         chmod +x ./gradlew
-        ./gradlew :site:build --no-daemon  # Build the site module specifically  # --- BACKEND BUILD ---
-  - name: 'gradle:8.8-jdk17'
-    id: 'build-backend'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        chmod +x ./gradlew
-        ./gradlew :site:build --no-daemon  # Build the site module specifically
+        ./gradlew :site:build --no-daemon
 
-  # Build Backend Docker image - WAITS for backend build
+  # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-backend-image'
     waitFor: ['build-backend']
@@ -59,7 +52,7 @@ steps:
         chmod +x ./gradlew && \
         ./gradlew :site:build --no-daemon
 
-  # Build Frontend Docker image - WAITS for frontend build
+  # Build Frontend Docker image
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-frontend-image'
     waitFor: ['build-frontend']
@@ -71,20 +64,20 @@ steps:
     ]
 
   # --- PUSH IMAGES ---
-  # Push Backend image - WAITS for backend image build
+  # Push Backend image
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-backend'
     waitFor: ['build-backend-image']
     args: ['push', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA']
 
-  # Push Frontend image - WAITS for frontend image build
+  # Push Frontend image
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-frontend'
     waitFor: ['build-frontend-image']
     args: ['push', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA']
 
   # --- DEPLOY SERVICES ---
-  # Deploy Backend - WAITS for backend image push
+  # Deploy Backend
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'deploy-backend'
     waitFor: ['push-backend']
@@ -98,7 +91,7 @@ steps:
       '--set-env-vars', 'SPRING_PROFILES_ACTIVE=prod'
     ]
 
-  # Deploy Frontend - WAITS for frontend image push
+  # Deploy Frontend
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'deploy-frontend'
     waitFor: ['push-frontend']
