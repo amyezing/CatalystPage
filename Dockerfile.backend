@@ -2,16 +2,14 @@ FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
 
-# Build the site module (includes both frontend and backend)
-RUN gradle :site:build --no-daemon
+# Build the JVM backend specifically
+RUN gradle :site:jvmJar --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Try different possible JAR locations
-COPY --from=builder /app/site/build/libs/*.jar app.jar || \
-COPY --from=builder /app/build/libs/*.jar app.jar || \
-COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
+# Copy the JVM JAR - check the exact name in build logs
+COPY --from=builder /app/site/build/libs/site-jvm.jar app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
