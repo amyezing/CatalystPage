@@ -4,46 +4,57 @@ import io.github.cdimascio.dotenv.Dotenv
 import java.io.File
 
 object EnvConfig {
+    private val dotenv: Dotenv? = try {
+        Dotenv.configure()
+            .directory(File(System.getProperty("user.dir")).parentFile.absolutePath)
+            .ignoreIfMissing()
+            .load()
+    } catch (e: Exception) {
+        println("Warning: .env file not found, using environment variables only")
+        null
+    }
 
-    private val dotenv: Dotenv = Dotenv.configure()
-        .directory(File(System.getProperty("user.dir")).parentFile.absolutePath)// force root dir
-        .ignoreIfMissing()
-        .load()
+    // Helper function to read from environment variables first, then .env
+    private fun getConfig(key: String): String? {
+        // Try environment variable first (for Cloud Run)
+        System.getenv(key)?.let { return it }
+        // Fall back to .env file (for local development)
+        return dotenv?.get(key)
+    }
 
-    val smtpHost: String = dotenv["SMTP_HOST"] ?: "smtpout.secureserver.net"
-    val smtpPortTls: Int = dotenv["SMTP_PORT_TLS"]?.toInt() ?: 587
-    val smtpPortSsl: Int = dotenv["SMTP_PORT_SSL"]?.toInt() ?: 465
-    val smtpUser: String = (dotenv["SMTP_USER"] ?: "").trim()
-    val smtpPass: String = (dotenv["SMTP_PASS"] ?: "").trim()
-    //cloud
-    val gcsCredentialsPath: String = dotenv["GCS_CREDENTIALS_PATH"]
-        ?: throw RuntimeException("GCS_CREDENTIALS_PATH not set in .env")
-    val gcsBucketName: String = dotenv["GCS_BUCKET_NAME"]
-        ?: throw RuntimeException("GCS_BUCKET_NAME not set in .env")
+    // Database configuration
+    val dbUser: String = getConfig("DB_USER") ?: ""
+    val dbPass: String = getConfig("DB_PASS") ?: ""
+    val dbHost: String = getConfig("DB_HOST") ?: "localhost"
+    val dbPort: Int = (getConfig("DB_PORT")?.toInt() ?: 3306)
+    val dbName: String = getConfig("DB_NAME") ?: "catalystdb"
 
+    // Firebase configuration
+    val firebaseApiKey: String = getConfig("FIREBASE_API_KEY") ?: ""
+    val firebaseAuthDomain: String = getConfig("FIREBASE_AUTH_DOMAIN") ?: ""
+    val firebaseProjectId: String = getConfig("FIREBASE_PROJECT_ID") ?: ""
+    val firebaseStorageBucket: String = getConfig("FIREBASE_STORAGE_BUCKET") ?: ""
+    val firebaseMessagingSenderId: String = getConfig("FIREBASE_MESSAGING_SENDER_ID") ?: ""
+    val firebaseAppId: String = getConfig("FIREBASE_APP_ID") ?: ""
 
-    //db
-    val dbUser: String = (dotenv["DB_USER"] ?: "").trim()
-    val dbPass: String = (dotenv["DB_PASS"] ?: "").trim()
-    val dbHost: String = (dotenv["DB_HOST"] ?: "localhost").trim()
-    val dbPort: Int = (dotenv["DB_PORT"]?.toInt() ?: 3306)
-    val dbName: String = (dotenv["DB_NAME"] ?: "catalystdb").trim()
+    // GCS configuration - handle required fields
+    val gcsBucketName: String = getConfig("GCS_BUCKET_NAME")
+        ?: throw RuntimeException("GCS_BUCKET_NAME not set in environment or .env")
 
+    val gcsCredentialsPath: String = getConfig("GCS_CREDENTIALS_PATH") ?: ""
 
-    //firebase
-    val firebaseApiKey = dotenv["FIREBASE_API_KEY"] ?: ""
-    val firebaseAuthDomain = dotenv["FIREBASE_AUTH_DOMAIN"] ?: ""
-    val firebaseProjectId = dotenv["FIREBASE_PROJECT_ID"] ?: ""
-    val firebaseStorageBucket = dotenv["FIREBASE_STORAGE_BUCKET"] ?: ""
-    val firebaseMessagingSenderId = dotenv["FIREBASE_MESSAGING_SENDER_ID"] ?: ""
-    val firebaseAppId = dotenv["FIREBASE_APP_ID"] ?: ""
+    // SMTP configuration
+    val smtpHost: String = getConfig("SMTP_HOST") ?: "smtpout.secureserver.net"
+    val smtpPortTls: Int = getConfig("SMTP_PORT_TLS")?.toInt() ?: 587
+    val smtpPortSsl: Int = getConfig("SMTP_PORT_SSL")?.toInt() ?: 465
+    val smtpUser: String = getConfig("SMTP_USER") ?: ""
+    val smtpPass: String = getConfig("SMTP_PASS") ?: ""
 
-    //admins
-    val adminEmails: List<String> = dotenv["ADMIN_EMAILS"]
+    // Admins
+    val adminEmails: List<String> = getConfig("ADMIN_EMAILS")
         ?.split(",")
         ?.map { it.trim() }
         ?: emptyList()
-
 }
 
 
