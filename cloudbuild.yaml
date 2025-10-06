@@ -1,6 +1,5 @@
 options:
   logging: CLOUD_LOGGING_ONLY
-  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
 
 steps:
   # Build the Kobweb application
@@ -15,7 +14,7 @@ steps:
         apt-get install -y nodejs && \
         gradle :site:build --no-daemon
 
-  # Build Docker image with nginx
+  # Build and push Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
@@ -23,6 +22,10 @@ steps:
       '-f', 'Dockerfile.runtime',
       '.'
     ]
+
+  # Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/catalyst-page:$COMMIT_SHA']
 
   # Deploy to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
