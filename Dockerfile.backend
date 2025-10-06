@@ -2,17 +2,14 @@ FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
 
-# Build the JVM backend - this will be overridden by the cloudbuild command
+# Build the JVM backend
 RUN gradle :site:jvmJar --no-daemon
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Try multiple possible JAR locations and names
-COPY --from=builder /app/site/build/libs/site-jvm.jar app.jar || \
-COPY --from=builder /app/site/build/libs/site.jar app.jar || \
-COPY --from=builder /app/site/build/libs/*.jar app.jar || \
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Copy the actual JAR file that was created
+COPY --from=builder /app/site/build/libs/com.jar app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]

@@ -25,14 +25,7 @@ steps:
       - '-c'
       - |
         chmod +x ./gradlew
-        # Try different JVM build commands
-        ./gradlew :site:jvmJar --no-daemon || \
-        ./gradlew :site:jvmMainClasses --no-daemon || \
-        ./gradlew :site:compileKotlinJvm --no-daemon || \
-        ./gradlew :site:build --no-daemon
-        
-        echo "=== JAR files created ==="
-        find . -name "*.jar" -type f
+        ./gradlew :site:jvmJar --no-daemon
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
