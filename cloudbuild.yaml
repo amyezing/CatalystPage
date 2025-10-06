@@ -5,8 +5,7 @@ steps:
   # --- BACKEND BUILD ---
   - name: 'gradle:8.8-jdk17'
     id: 'build-backend'
-    waitFor: ['debug-structure']
-    entrypoint: 'bash'
+    entrypoint: 'bash'  # ← REMOVE the waitFor line
     args:
       - '-c'
       - |
