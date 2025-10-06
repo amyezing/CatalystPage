@@ -2,20 +2,36 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
+  # --- DEBUG STRUCTURE ---
+  - name: 'gradle:8.8-jdk17'
+    id: 'debug'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Listing directories ==="
+        ls -la
+        echo "=== Finding JAR files ==="
+        find . -name "*.jar" -type f
+        echo "=== Gradle projects ==="
+        chmod +x ./gradlew
+        ./gradlew projects --no-daemon
+
   # --- BACKEND BUILD ---
   - name: 'gradle:8.8-jdk17'
     id: 'build-backend'
+    waitFor: ['debug']  # ← ADD waitFor HERE
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         chmod +x ./gradlew
-        ./gradlew build --no-daemon  # ← REMOVED -x test
+        ./gradlew build --no-daemon
 
   # Build Backend Docker image - WAITS for backend build
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-backend-image'
-    waitFor: ['build-backend']  # ← ADD THIS
+    waitFor: ['build-backend']
     args: [
       'build',
       '-t', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
@@ -40,7 +56,7 @@ steps:
   # Build Frontend Docker image - WAITS for frontend build
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-frontend-image'
-    waitFor: ['build-frontend']  # ← ADD THIS
+    waitFor: ['build-frontend']
     args: [
       'build',
       '-t', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
@@ -52,20 +68,20 @@ steps:
   # Push Backend image - WAITS for backend image build
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-backend'
-    waitFor: ['build-backend-image']  # ← ADD THIS
+    waitFor: ['build-backend-image']
     args: ['push', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA']
 
   # Push Frontend image - WAITS for frontend image build
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-frontend'
-    waitFor: ['build-frontend-image']  # ← ADD THIS
+    waitFor: ['build-frontend-image']
     args: ['push', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA']
 
   # --- DEPLOY SERVICES ---
   # Deploy Backend - WAITS for backend image push
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'deploy-backend'
-    waitFor: ['push-backend']  # ← ADD THIS
+    waitFor: ['push-backend']
     args: [
       'run', 'deploy', 'catalyst-backend',
       '--image', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
@@ -79,7 +95,7 @@ steps:
   # Deploy Frontend - WAITS for frontend image push
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'deploy-frontend'
-    waitFor: ['push-frontend']  # ← ADD THIS
+    waitFor: ['push-frontend']
     args: [
       'run', 'deploy', 'catalyst-frontend',
       '--image', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
