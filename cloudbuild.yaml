@@ -10,7 +10,7 @@ steps:
       - '-c'
       - |
         chmod +x ./gradlew
-        ./gradlew build -x test --no-daemon
+        ./gradlew build --no-daemon  # ← REMOVED -x test
 
   # Build Backend Docker image - WAITS for backend build
   - name: 'gcr.io/cloud-builders/docker'
