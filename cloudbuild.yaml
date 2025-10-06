@@ -2,7 +2,7 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # --- FRONTEND BUILD ---
+  # --- FRONTEND BUILD ONLY ---
   # Build the Kobweb application
   - name: 'gradle:8.8-jdk17'
     id: 'build-frontend'
@@ -43,44 +43,5 @@ steps:
       '--port', '8080'
     ]
 
-  # --- BACKEND BUILD ---
-  # Build Backend application
-  - name: 'gradle:8.8-jdk17'
-    id: 'build-backend'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        cd catalyst-backend && \
-        gradle build --no-daemon
-
-  # Build and push Backend Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'build-backend-image'
-    args: [
-      'build',
-      '-t', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
-      '-f', 'Dockerfile.backend',
-      '.'
-    ]
-
-  # Push the Backend image
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'push-backend'
-    args: ['push', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA']
-
-  # Deploy Backend to Cloud Run
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'deploy-backend'
-    args: [
-      'run', 'deploy', 'catalyst-backend',
-      '--image', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
-      '--region', 'asia-southeast1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--port', '8080'
-    ]
-
 images:
   - 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA'
