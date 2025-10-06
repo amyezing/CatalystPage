@@ -3,11 +3,11 @@ FROM nginx:alpine
 # Copy the static site
 COPY site/.kobweb/site/ /usr/share/nginx/html/
 
-# Replace the nginx config to use PORT environment variable
+# Hardcode port 8080 in nginx config (Cloud Run always uses 8080)
 RUN echo 'events {} \n\
 http { \n\
   server { \n\
-    listen $PORT; \n\
+    listen 8080; \n\
     root /usr/share/nginx/html; \n\
     index index.html; \n\
     \n\
