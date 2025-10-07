@@ -10,14 +10,17 @@ WORKDIR /app
 COPY --from=builder /app/site/build/libs/com.jar app.jar
 
 # Debug: Check what we actually have
-RUN echo "=== Current directory ===" && \
-    ls -la && \
+RUN echo "=== Debug information ===" && \
+    echo "Current directory:" && pwd && \
+    echo "Files in current directory:" && ls -la && \
     echo "=== Checking JAR file ===" && \
     ls -la app.jar && \
-    echo "=== Checking if JAR is valid ===" && \
-    (jar tf app.jar 2>/dev/null | head -10 || echo "Not a valid JAR file") && \
+    echo "=== Checking JAR contents ===" && \
+    (jar tf app.jar 2>/dev/null | head -20 || echo "Not a valid JAR file") && \
     echo "=== Checking manifest ===" && \
-    (unzip -p app.jar META-INF/MANIFEST.MF 2>/dev/null || echo "No manifest found")
+    (unzip -p app.jar META-INF/MANIFEST.MF 2>/dev/null || echo "No manifest found") && \
+    echo "=== File type ===" && \
+    file app.jar || echo "Cannot determine file type"
 
 # Create minimal .env file
 RUN mkdir -p /app && \

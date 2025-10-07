@@ -24,6 +24,7 @@ steps:
         
         echo "=== Checking Kobweb output structure ==="
         find .kobweb -type f -name "*.jar" 2>/dev/null || echo "No Kobweb JARs found"
+        echo "=== Site build directory ==="
         ls -la ./site/build/ || echo "No site build directory"
         echo "=== Site build libs contents ==="
         ls -la ./site/build/libs/ || echo "No libs directory"
