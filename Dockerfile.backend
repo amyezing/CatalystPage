@@ -6,14 +6,21 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Try the Gradle-built JAR instead of Kobweb system JAR
-COPY --from=builder /app/site/build/libs/com.jar app.jar
+# Copy the JAR
+COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
 
-# Ktor configuration
-ENV PORT=8080
-ENV KTOR_ENV=production
+# Install debugging tools
+RUN apt-get update && apt-get install -y curl netcat-openbsd
 
-# Environment file
+# Debug: Check what we have
+RUN echo "=== DEBUG INFO ===" && \
+    echo "JAR exists:" && ls -la app.jar && \
+    echo "JAR size:" && ls -lh app.jar && \
+    echo "Java version:" && java -version && \
+    echo "=== ENVIRONMENT ===" && \
+    env | sort
+
+# Create .env file
 RUN mkdir -p /app && \
     echo "DB_HOST=localhost" > /app/.env && \
     echo "DB_PORT=3306" >> /app/.env && \
@@ -26,5 +33,9 @@ RUN mkdir -p /app && \
 
 EXPOSE 8080
 
-# Force Ktor to use port 8080 explicitly
-CMD ["java", "-Dio.ktor.deployment.port=8080", "-jar", "app.jar"]
+# Health check to verify the app is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/ || exit 1
+
+# Run with debugging output
+CMD ["java", "-Dio.ktor.deployment.port=8080", "-Dio.ktor.deployment.environment=production", "-XX:+PrintFlagsFinal", "-XshowSettings:system", "-jar", "app.jar"]
