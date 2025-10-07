@@ -11,25 +11,15 @@ steps:
       - |
         chmod +x ./gradlew
         ./gradlew :site:build --no-daemon
-        
-        echo "=== SEARCHING FOR ALL JAR FILES ==="
-        find . -name "*.jar" -type f | while read jar; do
-          echo "Found: $jar"
-          echo "Size: $(ls -lh "$jar" | awk '{print $5}')"
-          echo "=== Manifest of $jar ==="
-          unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | grep -E "(Main-Class|Manifest-Version)" || echo "No manifest or not a JAR"
-          echo "---"
-        done
-        
-        echo "=== SPECIFICALLY CHECKING FOR com.jar ==="
-        find . -name "com.jar" -type f
-        
-        echo "=== CHECKING KOBWEB BUILD OUTPUT ==="
-        ls -la ./site/.kobweb/site/ 2>/dev/null || echo "No Kobweb site directory"
-        find .kobweb -name "*.jar" -type f 2>/dev/null || echo "No Kobweb JARs"
-        
-        echo "=== CHECKING GRADLE BUILD OUTPUT ==="
-        ls -la ./site/build/libs/ || echo "No libs directory"
+
+        echo "=== EXAMINING THE LARGER com.jar ==="
+        jar tf ./site/build/libs/com.jar | head -30
+
+        echo "=== CHECKING FOR KTOR/SPRING BOOT CLASSES ==="
+        jar tf ./site/build/libs/com.jar | grep -E "(Application|Main|Ktor|Spring)" | head -10
+
+        echo "=== FULL MANIFEST ==="
+        unzip -p ./site/build/libs/com.jar META-INF/MANIFEST.MF
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'

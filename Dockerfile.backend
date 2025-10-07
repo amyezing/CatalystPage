@@ -6,19 +6,34 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Try multiple possible locations for com.jar
-COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
+# Use the larger com.jar from Gradle build output (61MB vs 19MB)
+COPY --from=builder /app/site/build/libs/com.jar app.jar
 
-# If the above doesn't work, try the Gradle build output
-# COPY --from=builder /app/site/build/libs/com.jar app.jar
+# Install file command for debugging
+RUN apt-get update && apt-get install -y file
 
-# Debug what we copied
-RUN echo "=== Checking if app.jar exists ===" && \
-    ls -la app.jar && \
-    echo "=== Checking JAR type ===" && \
-    file app.jar || echo "Not a valid file" && \
-    echo "=== Checking manifest ===" && \
-    (unzip -p app.jar META-INF/MANIFEST.MF 2>/dev/null | head -10 || echo "No manifest found")
+# Debug what we actually have
+RUN echo "=== Debug information ===" && \
+    echo "JAR size:" && ls -lh app.jar && \
+    echo "=== File type ===" && \
+    file app.jar && \
+    echo "=== Checking if it's a valid JAR ===" && \
+    (jar tf app.jar > /dev/null 2>&1 && echo "Valid JAR" || echo "Invalid JAR") && \
+    echo "=== Manifest content ===" && \
+    (unzip -p app.jar META-INF/MANIFEST.MF 2>/dev/null || echo "No manifest found") && \
+    echo "=== Looking for main classes ===" && \
+    (jar tf app.jar | grep -E "\.class$" | grep -i main | head -5 || echo "No main classes found")
+
+# Create minimal .env file
+RUN mkdir -p /app && \
+    echo "DB_HOST=localhost" > /app/.env && \
+    echo "DB_PORT=3306" >> /app/.env && \
+    echo "DB_NAME=catalystdb" >> /app/.env && \
+    echo "DB_USER=root" >> /app/.env && \
+    echo "DB_PASS=" >> /app/.env && \
+    echo "GCS_BUCKET_NAME=dummy" >> /app/.env && \
+    echo "GCS_CREDENTIALS_PATH=dummy" >> /app/.env && \
+    echo "FIREBASE_API_KEY=dummy" >> /app/.env
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
