@@ -6,15 +6,14 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Use the Kobweb system JAR (production optimized)
-COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
+# Try the Gradle-built JAR instead of Kobweb system JAR
+COPY --from=builder /app/site/build/libs/com.jar app.jar
 
-# Ktor needs these environment variables
+# Ktor configuration
 ENV PORT=8080
 ENV KTOR_ENV=production
-ENV KTOR_IS_DEVELOPMENT=false
 
-# Create .env file for your database configuration
+# Environment file
 RUN mkdir -p /app && \
     echo "DB_HOST=localhost" > /app/.env && \
     echo "DB_PORT=3306" >> /app/.env && \
@@ -27,5 +26,5 @@ RUN mkdir -p /app && \
 
 EXPOSE 8080
 
-# Run with production settings
-CMD ["java", "-Dio.ktor.deployment.port=8080", "-Dio.ktor.deployment.environment=production", "-jar", "app.jar"]
+# Force Ktor to use port 8080 explicitly
+CMD ["java", "-Dio.ktor.deployment.port=8080", "-jar", "app.jar"]
