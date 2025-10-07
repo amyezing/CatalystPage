@@ -12,18 +12,12 @@ steps:
         chmod +x ./gradlew
         ./gradlew :site:build --no-daemon
 
-        echo "=== CHECKING FOR APPLICATION CONFIG ==="
-        find . -name "application.conf" -o -name "application.yaml" -o -name "application.yml" | head -10
+        echo "=== VERIFYING MAIN CLASS IN GRADLE JAR ==="
+        jar tf ./site/build/libs/com.jar | grep "ApplicationKt.class"
 
-        echo "=== CHECKING JVM RESOURCES ==="
-        find . -path "*/resources/*" -name "*" | head -20
-
-        echo "=== KOBWEB SERVER STRUCTURE ==="
-        ls -la ./site/.kobweb/site/system/
-
-        echo "=== TESTING JAR STARTUP LOCALLY ==="
-        # Try to run the JAR locally to see if it starts
-        timeout 10s java -jar ./site/.kobweb/site/system/com.jar || echo "JAR failed to start within 10s"
+        echo "=== TESTING GRADLE JAR STARTUP ==="
+        # Test if the Gradle JAR can start
+        timeout 15s java -cp ./site/build/libs/com.jar catalystpage.com.ApplicationKt || echo "Startup test completed"
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'

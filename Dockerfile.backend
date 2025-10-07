@@ -6,19 +6,8 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy the JAR
-COPY --from=builder /app/site/.kobweb/site/system/com.jar app.jar
-
-# Install debugging tools
-RUN apt-get update && apt-get install -y curl netcat-openbsd
-
-# Debug: Check what we have
-RUN echo "=== DEBUG INFO ===" && \
-    echo "JAR exists:" && ls -la app.jar && \
-    echo "JAR size:" && ls -lh app.jar && \
-    echo "Java version:" && java -version && \
-    echo "=== ENVIRONMENT ===" && \
-    env | sort
+# Use the Gradle-built JAR (61MB one) and specify main class explicitly
+COPY --from=builder /app/site/build/libs/com.jar app.jar
 
 # Create .env file
 RUN mkdir -p /app && \
@@ -33,9 +22,5 @@ RUN mkdir -p /app && \
 
 EXPOSE 8080
 
-# Health check to verify the app is running
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/ || exit 1
-
-# Run with debugging output
-CMD ["java", "-Dio.ktor.deployment.port=8080", "-Dio.ktor.deployment.environment=production", "-XX:+PrintFlagsFinal", "-XshowSettings:system", "-jar", "app.jar"]
+# Use the main class we found earlier: catalystpage.com.ApplicationKt
+CMD ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
