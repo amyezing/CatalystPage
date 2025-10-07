@@ -1,73 +1,23 @@
-#-----------------------------------------------------------------------------
-# Official Kobweb Dockerfile for Cloud Deployment
-# Based on: https://bitspittle.dev/blog/2023/cloud-deploy
-#-----------------------------------------------------------------------------
-ARG KOBWEB_APP_ROOT="site"
+FROM gradle:8.8-jdk17 AS builder
+WORKDIR /app
+COPY . .
+RUN gradle :site:build --no-daemon
 
-FROM eclipse-temurin:21 as java
+FROM eclipse-temurin:17-jre
+WORKDIR /app
 
-#-----------------------------------------------------------------------------
-# Build and export stage
-FROM java as export
+# Copy the Kobweb site output (this works)
+COPY --from=builder /app/site/.kobweb/site/ /app/
 
-ENV KOBWEB_CLI_VERSION=0.9.18
-ARG KOBWEB_APP_ROOT
-ENV NODE_MAJOR=20
-
-# Copy project
-COPY . /project
-
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y ca-certificates curl gnupg unzip wget \
-    && mkdir -p /etc/apt/keyrings \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install -y nodejs \
-    && npm init -y \
-    && npx playwright install --with-deps chromium
-
-# Install Kobweb CLI
-RUN wget https://github.com/varabyte/kobweb-cli/releases/download/v${KOBWEB_CLI_VERSION}/kobweb-${KOBWEB_CLI_VERSION}.zip \
-    && unzip kobweb-${KOBWEB_CLI_VERSION}.zip \
-    && rm kobweb-${KOBWEB_CLI_VERSION}.zip
-
-ENV PATH="/kobweb-${KOBWEB_CLI_VERSION}/bin:${PATH}"
-
-WORKDIR /project/${KOBWEB_APP_ROOT}
-
-# Configure Gradle memory
-RUN mkdir ~/.gradle && \
-    echo "org.gradle.jvmargs=-Xmx325m" >> ~/.gradle/gradle.properties
-
-# Export the Kobweb site (this creates the server structure)
-RUN kobweb export --notty
-
-#-----------------------------------------------------------------------------
-# Runtime stage
-FROM eclipse-temurin:21 as run
-
-ARG KOBWEB_APP_ROOT
-
-# Copy the exported Kobweb server
-COPY --from=export /project/${KOBWEB_APP_ROOT}/.kobweb .kobweb
-
-# Create .env file for configuration
-RUN mkdir -p /app && \
-    echo "DB_HOST=localhost" > /app/.env && \
-    echo "DB_PORT=3306" >> /app/.env && \
-    echo "DB_NAME=catalystdb" >> /app/.env && \
-    echo "DB_USER=root" >> /app/.env && \
-    echo "DB_PASS=" >> /app/.env && \
-    echo "GCS_BUCKET_NAME=dummy" >> /app/.env && \
-    echo "GCS_CREDENTIALS_PATH=dummy" >> /app/.env && \
-    echo "FIREBASE_API_KEY=dummy" >> /app/.env
-
-# Memory limits for Cloud Run
-ENV JAVA_TOOL_OPTIONS="-Xmx512m"
+# Debug: Check what we actually have
+RUN echo "=== Checking Kobweb structure ===" && \
+    find /app -name "*.jar" | head -10 && \
+    echo "=== System directory ===" && \
+    ls -la /app/system/ && \
+    echo "=== Checking if main class exists ===" && \
+    (jar tf /app/system/com.jar | grep "ApplicationKt.class" || echo "Main class not found")
 
 EXPOSE 8080
 
-# Use the official Kobweb start.sh script
-ENTRYPOINT [".kobweb/server/start.sh"]
+# Use the direct Java command that we know works
+CMD ["java", "-cp", "/app/system/*", "catalystpage.com.ApplicationKt"]

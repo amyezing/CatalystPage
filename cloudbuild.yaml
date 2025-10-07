@@ -2,13 +2,13 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # --- BACKEND BUILD (using official Kobweb Dockerfile) ---
+  # --- BACKEND BUILD (using simple Dockerfile) ---
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-backend-image'
     args: [
       'build',
       '-t', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
-      '-f', 'Dockerfile.backend',
+      '-f', 'Dockerfile.backend',  # Make sure this points to your simple Dockerfile
       '.'
     ]
 

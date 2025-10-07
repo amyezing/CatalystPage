@@ -30,15 +30,13 @@ fun main() {
 }
 
 fun Application.module() {
-
-
-    launch {
-        try {
-            DbConnection.connect()
-            println("Database connected")
-        } catch (e: Exception) {
-            print("Database connection failed: ${e.message}")
-        }
+    // Remove the launch block - connect directly
+    try {
+        DbConnection.connect()
+        println("Database connected")
+    } catch (e: Exception) {
+        println("Database connection failed: ${e.message}")
+        // Don't throw - just continue without database
     }
 
     install(ContentNegotiation) {
@@ -49,12 +47,11 @@ fun Application.module() {
         })
     }
 
-    // CORS CONFIGURATION - THIS IS ENOUGH
+    // ... rest of your configuration stays the same
     install(io.ktor.server.plugins.cors.routing.CORS) {
-        anyHost() // Allow all origins
+        anyHost()
         allowCredentials = true
         allowNonSimpleContentTypes = true
-
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
@@ -62,7 +59,6 @@ fun Application.module() {
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Head)
-
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowHeader("X-Firebase-Uid")
@@ -86,10 +82,14 @@ fun Application.module() {
         get("/test-cors") {
             call.respondText("CORS test - backend is running")
         }
-        get("/health") {
-            call.respond(mapOf("status" to "running", "timestamp" to System.currentTimeMillis()))
-        }
 
+        get("/health") {
+            call.respond(mapOf(
+                "status" to "running",
+                "timestamp" to System.currentTimeMillis(),
+                "database" to if (DbConnection.isConnected()) "connected" else "offline"
+            ))
+        }
 
         route("/api") {
             adminEmails()
