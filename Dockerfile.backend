@@ -6,31 +6,19 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy Kobweb site
+# Copy the entire Kobweb site output (this is critical)
 COPY --from=builder /app/site/.kobweb/site/ /app/
 
-# Create our own start.sh based on Kobweb's typical structure
-RUN cat > /app/start.sh << 'EOF'
-#!/bin/bash
-# Kobweb server startup script
-cd /app
-java -cp "system/*:resources/*" catalystpage.com.ApplicationKt
-EOF
-
-RUN chmod +x /app/start.sh
-
-# Create .env file
-RUN mkdir -p /app && \
-    echo "DB_HOST=localhost" > /app/.env && \
-    echo "DB_PORT=3306" >> /app/.env && \
-    echo "DB_NAME=catalystdb" >> /app/.env && \
-    echo "DB_USER=root" >> /app/.env && \
-    echo "DB_PASS=" >> /app/.env && \
-    echo "GCS_BUCKET_NAME=dummy" >> /app/.env && \
-    echo "GCS_CREDENTIALS_PATH=dummy" >> /app/.env && \
-    echo "FIREBASE_API_KEY=dummy" >> /app/.env
+# Debug: Check what we have
+RUN echo "=== KOBWEB SITE STRUCTURE ===" && \
+    find /app -type f -name "*.jar" | head -10 && \
+    echo "=== SYSTEM DIRECTORY ===" && \
+    ls -la /app/system/ && \
+    echo "=== MAIN JAR ===" && \
+    ls -la /app/system/com.jar
 
 EXPOSE 8080
 
-# Use our start.sh
-CMD ["/app/start.sh"]
+# Use the EXACT command from Kobweb's deployment guide
+# This uses the proper classpath with all dependencies
+CMD ["java", "-cp", "/app/system/*", "catalystpage.com.ApplicationKt"]

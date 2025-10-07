@@ -12,18 +12,18 @@ steps:
         chmod +x ./gradlew
         ./gradlew :site:build --no-daemon
 
-        echo "=== LOOKING FOR START.SH ==="
-        find . -name "start.sh" -type f | head -10
-
-        echo "=== KOBWEB SERVER STRUCTURE ==="
-        find .kobweb -type f -name "*" | head -20
-
-        echo "=== CHECKING FOR SERVER DIRECTORY ==="
-        find . -type d -name "server" | head -10
-        find .kobweb -type d -name "server" | head -10
-
-        echo "=== ALL FILES IN KOBWEB SITE ==="
+        echo "=== VERIFYING KOBWEB OUTPUT ==="
+        echo "Kobweb site directory:"
         ls -la ./site/.kobweb/site/
+        echo "System directory:"
+        ls -la ./site/.kobweb/site/system/
+
+        echo "=== CHECKING MAIN CLASS EXISTS ==="
+        jar tf ./site/.kobweb/site/system/com.jar | grep "ApplicationKt.class"
+
+        echo "=== TESTING KOBWEB STARTUP ==="
+        cd ./site/.kobweb/site
+        timeout 15s java -cp "system/*" catalystpage.com.ApplicationKt || echo "Startup test completed"
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
