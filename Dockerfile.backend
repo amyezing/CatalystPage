@@ -6,29 +6,20 @@ RUN gradle :site:build --no-daemon
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy the JAR
 COPY --from=builder /app/site/build/libs/com.jar app.jar
 
-# Install jar command for debugging (optional)
-RUN apt-get update && apt-get install -y default-jre-headless
-
-# Debug: Check the JAR properly
-RUN echo "=== Checking JAR with proper tools ===" && \
-    jar tf app.jar | head -5 && \
-    echo "=== Main class found: catalystpage.com.ApplicationKt ==="
-
-# Create minimal .env file
-RUN mkdir -p /app && \
-    echo "DB_HOST=localhost" > /app/.env && \
-    echo "DB_PORT=3306" >> /app/.env && \
-    echo "DB_NAME=catalystdb" >> /app/.env && \
-    echo "DB_USER=root" >> /app/.env && \
-    echo "DB_PASS=" >> /app/.env && \
-    echo "GCS_BUCKET_NAME=dummy" >> /app/.env && \
-    echo "GCS_CREDENTIALS_PATH=dummy" >> /app/.env && \
-    echo "FIREBASE_API_KEY=dummy" >> /app/.env
+# Environment setup
+RUN mkdir -p /app
+ENV DB_HOST=localhost
+ENV DB_PORT=3306
+ENV DB_NAME=catalystdb
+ENV DB_USER=root
+ENV DB_PASS=
+ENV GCS_BUCKET_NAME=dummy
+ENV GCS_CREDENTIALS_PATH=dummy
+ENV FIREBASE_API_KEY=dummy
 
 EXPOSE 8080
 
-# Use the specific main class we found
+# Use the main class we found in the debug output
 CMD ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
