@@ -4,30 +4,32 @@ options:
 steps:
   # --- BACKEND BUILD & DEBUG ---
   - name: 'gradle:8.8-jdk17'
-    id: 'build-backend'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        chmod +x ./gradlew
-        ./gradlew :site:build --no-daemon
-        
-        echo "=== ALL JAR FILES ==="
-        find . -name "*.jar" -type f
-        
-        echo "=== Checking JAR manifests ==="
-        for jar in $(find . -name "*.jar" -type f); do
-          echo "=== $jar ==="
-          jar tf "$jar" 2>/dev/null | grep -E "(META-INF/MANIFEST.MF|Main-Class|.class$)" | head -10 || echo "Cannot read JAR or not a valid JAR"
-          echo "---"
-        done
-        
-        echo "=== Checking Kobweb output structure ==="
-        find .kobweb -type f -name "*.jar" 2>/dev/null || echo "No Kobweb JARs found"
-        echo "=== Site build directory ==="
-        ls -la ./site/build/ || echo "No site build directory"
-        echo "=== Site build libs contents ==="
-        ls -la ./site/build/libs/ || echo "No libs directory"
+      id: 'build-backend'
+      entrypoint: 'bash'
+      args:
+        - '-c'
+        - |
+          chmod +x ./gradlew
+          ./gradlew :site:build --no-daemon
+
+          echo "=== SEARCHING FOR ALL JAR FILES ==="
+          find . -name "*.jar" -type f | while read jar; do
+            echo "Found: $jar"
+            echo "Size: $(ls -lh "$jar" | awk '{print $5}')"
+            echo "=== Manifest of $jar ==="
+            unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | grep -E "(Main-Class|Manifest-Version)" || echo "No manifest or not a JAR"
+            echo "---"
+          done
+
+          echo "=== SPECIFICALLY CHECKING FOR com.jar ==="
+          find . -name "com.jar" -type f
+
+          echo "=== CHECKING KOBWEB BUILD OUTPUT ==="
+          ls -la ./site/.kobweb/site/ 2>/dev/null || echo "No Kobweb site directory"
+          find .kobweb -name "*.jar" -type f 2>/dev/null || echo "No Kobweb JARs"
+
+          echo "=== CHECKING GRADLE BUILD OUTPUT ==="
+          ls -la ./site/build/libs/ || echo "No libs directory"
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
