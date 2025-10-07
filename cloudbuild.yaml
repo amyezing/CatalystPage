@@ -12,14 +12,17 @@ steps:
         chmod +x ./gradlew
         ./gradlew :site:build --no-daemon
 
-        echo "=== EXAMINING THE LARGER com.jar ==="
-        jar tf ./site/build/libs/com.jar | head -30
+        echo "=== CHECKING FOR KTOR CONFIG ==="
+        find . -name "application.conf" -o -name "application.yaml" | head -10
 
-        echo "=== CHECKING FOR KTOR/SPRING BOOT CLASSES ==="
-        jar tf ./site/build/libs/com.jar | grep -E "(Application|Main|Ktor|Spring)" | head -10
+        echo "=== CHECKING JAR DIFFERENCES ==="
+        echo "Kobweb system JAR:"
+        ls -lh ./site/.kobweb/site/system/com.jar
+        echo "Gradle build JAR:"  
+        ls -lh ./site/build/libs/com.jar
 
-        echo "=== FULL MANIFEST ==="
-        unzip -p ./site/build/libs/com.jar META-INF/MANIFEST.MF
+        echo "=== CHECKING MAIN CLASS IN GRADLE JAR ==="
+        unzip -p ./site/build/libs/com.jar META-INF/MANIFEST.MF | grep -i main || echo "No main class in manifest"
 
   # Build Backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
