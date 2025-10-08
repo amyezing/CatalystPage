@@ -13,13 +13,14 @@ steps:
       ]
 
   # ===== FRONTEND BUILD =====
+  # 👇 Make sure the path points to the correct Dockerfile and context
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
         '-t', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
-        '-f', 'site/Dockerfile.frontend',
-        'site'
+        '-f', 'Dockerfile.frontend',
+        '.'
       ]
 
   # ===== PUSH IMAGES =====
