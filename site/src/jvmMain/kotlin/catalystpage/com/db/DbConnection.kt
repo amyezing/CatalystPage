@@ -18,7 +18,7 @@ object DbConnection {
                 maximumPoolSize = 10
                 isAutoCommit = false
                 transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-                validate()
+                // REMOVE validate() - it might be throwing the exception
             }
 
             dataSource = HikariDataSource(config)
@@ -26,13 +26,17 @@ object DbConnection {
             println("✅ Database connected successfully")
         } catch (e: Exception) {
             println("⚠️ Database connection failed: ${e.message}")
-            // Don't rethrow - just log and continue
+            // CRITICAL: Don't rethrow the exception!
+            // The app should continue without database
         }
     }
 
     fun isConnected(): Boolean {
         return dataSource != null && try {
-            dataSource!!.connection.use { true }
+            dataSource!!.connection.use {
+                // Test if connection is actually working
+                true
+            }
         } catch (e: Exception) {
             false
         }

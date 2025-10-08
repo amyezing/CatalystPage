@@ -1,23 +1,27 @@
+# -------- Stage 1: Build Backend --------
 FROM gradle:8.8-jdk17 AS builder
-WORKDIR /app
-COPY . .
-RUN gradle :site:build --no-daemon
 
+WORKDIR /app
+COPY gradlew .
+COPY build.gradle.kts settings.gradle.kts ./
+COPY gradle ./gradle
+COPY src ./src
+
+RUN chmod +x ./gradlew
+RUN ./gradlew build --no-daemon
+
+# -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy the Kobweb site output (this works)
-COPY --from=builder /app/site/.kobweb/site/ /app/
+COPY --from=builder /app/build/libs/*.jar app.jar
 
-# Debug: Check what we actually have
-RUN echo "=== Checking Kobweb structure ===" && \
-    find /app -name "*.jar" | head -10 && \
-    echo "=== System directory ===" && \
-    ls -la /app/system/ && \
-    echo "=== Checking if main class exists ===" && \
-    (jar tf /app/system/com.jar | grep "ApplicationKt.class" || echo "Main class not found")
+# Default environment variables (can be overridden in Cloud Run)
+ENV DB_HOST=localhost \
+    DB_PORT=3306 \
+    DB_NAME=catalystdb \
+    DB_USER=root \
+    DB_PASS=password
 
 EXPOSE 8080
-
-# Use the direct Java command that we know works
-CMD ["java", "-cp", "/app/system/*", "catalystpage.com.ApplicationKt"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
