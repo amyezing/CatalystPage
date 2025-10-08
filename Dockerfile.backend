@@ -8,7 +8,7 @@ COPY gradle ./gradle
 COPY site ./site
 
 RUN chmod +x ./gradlew
-RUN ./gradlew :site:jar --no-daemon
+RUN ./gradlew :backend:build --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jdk
