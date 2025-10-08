@@ -1,19 +1,34 @@
-# -------- Build Kobweb Application --------
+# -------- Stage 1: Builder --------
 FROM gradle:8.8-jdk17 AS builder
-
 WORKDIR /app
+
+# Copy Gradle wrapper and build files first for caching
+COPY gradlew .
+COPY build.gradle.kts settings.gradle.kts ./
+COPY gradle ./gradle
+
+# Install Node.js (for Kobweb dependencies if needed)
+RUN apt-get update && apt-get install -y curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest
+
+# Copy project source
 COPY . .
 
+# Make gradlew executable and build
 RUN chmod +x ./gradlew
-# Build the complete Kobweb application (frontend + backend)
-RUN ./gradlew :site:kobwebBuild -PkobwebEnv=PROD --no-daemon
+RUN ./gradlew build --no-daemon
 
-# -------- Runtime --------
-FROM eclipse-temurin:17-jre
+# -------- Stage 2: Runtime --------
+FROM openjdk:17-jdk-slim
 WORKDIR /app
 
-# Copy the Kobweb server JAR
-COPY --from=builder /app/site/.kobweb/server/*.jar app.jar
+# Copy built jar
+COPY --from=builder /app/build/libs/*.jar app.jar
 
+# Expose port
 EXPOSE 8080
+
+# Run the app
 ENTRYPOINT ["java", "-jar", "app.jar"]
