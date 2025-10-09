@@ -6,26 +6,20 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Build from the site directory
+# Build from the site directory using Kobweb's backend approach
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# Debug: See what files we have
-RUN echo "=== Files in site directory ===" && ls -la
-RUN echo "=== Build directory structure ===" && find . -name "build" -type d
-
-# Try compiling just the classes first
-RUN ../gradlew compileKotlinJvm --info
-
-# Then try building the JAR
-RUN ../gradlew jar --info
+# Build the Kobweb application which will create the backend JAR
+RUN ../gradlew kobwebStop kobwebBuild -x test
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+# Copy the JAR from Kobweb build output
+COPY --from=builder /app/site/.kobweb/site/*.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
