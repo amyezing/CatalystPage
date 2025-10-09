@@ -2,7 +2,20 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # ===== BACKEND BUILD =====
+  # ===== DEBUG: FIND THE SOURCE CODE =====
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Finding all src directories ==="
+        find . -name "src" -type d
+        echo "=== Finding Kotlin files ==="
+        find . -name "*.kt" | head -10
+        echo "=== Directory structure ==="
+        ls -la
+        ls -la site/ 2>/dev/null || echo "site directory not found"
+
   # ===== BACKEND BUILD =====
   - name: 'gcr.io/cloud-builders/docker'
     args:
@@ -10,7 +23,7 @@ steps:
         'build',
         '-t', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
         '-f', 'Dockerfile.backend',
-        '.'  # ← Change from 'site' to '.' (root directory)
+        '.'
       ]
 
   # ===== FRONTEND BUILD =====
