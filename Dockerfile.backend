@@ -11,21 +11,17 @@ WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# Build the JVM backend (use correct test exclusion)
-RUN ../gradlew kobwebUnpackServerJar -x jsTest
+# Build JVM classes and create JAR manually
+RUN ../gradlew compileKotlinJvm -x jsTest
 
-# Debug: See what files were created
-RUN echo "=== Files in .kobweb directory ==="
-RUN find .kobweb -type f -name "*.jar" | head -20
-RUN ls -la .kobweb/
-RUN ls -la .kobweb/server/ 2>/dev/null || echo "No server directory"
+# Create the JAR manually from compiled classes
+RUN jar cf app.jar -C build/classes/kotlin/jvm/main .
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy the server JAR
-COPY --from=builder /app/site/.kobweb/server/*.jar app.jar
+COPY --from=builder /app/site/app.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
