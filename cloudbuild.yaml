@@ -2,20 +2,6 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # ===== DEBUG: FIND THE BACKEND CODE =====
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "=== Finding JVM backend Kotlin files ==="
-        find . -name "*.kt" -path "*/jvmMain/*" | head -20
-        echo "=== Checking site/src structure ==="
-        ls -la site/src/
-        echo "=== Looking for Application.kt or main functions ==="
-        find . -name "*.kt" -type f -exec grep -l "fun main()" {} \; | head -10
-        find . -name "Application.kt" | head -10
-
   # ===== BACKEND BUILD =====
   - name: 'gcr.io/cloud-builders/docker'
     args:

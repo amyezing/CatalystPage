@@ -21,8 +21,8 @@ RUN ./gradlew :site:jvmJar -x test
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy the JAR from site build output
-COPY --from=builder /app/site/build/libs/site-jvm.jar app.jar
+# Copy the JAR from site build output (use wildcard for flexibility)
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
