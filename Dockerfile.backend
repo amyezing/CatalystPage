@@ -11,15 +11,21 @@ WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# Build the Kobweb backend - use kobwebExport which should create the server
-RUN ../gradlew kobwebExport -x test
+# Build the JVM backend (use correct test exclusion)
+RUN ../gradlew kobwebUnpackServerJar -x jsTest
+
+# Debug: See what files were created
+RUN echo "=== Files in .kobweb directory ==="
+RUN find .kobweb -type f -name "*.jar" | head -20
+RUN ls -la .kobweb/
+RUN ls -la .kobweb/server/ 2>/dev/null || echo "No server directory"
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy the JAR from Kobweb export output
-COPY --from=builder /app/site/.kobweb/site/*.jar app.jar
+# Copy the server JAR
+COPY --from=builder /app/site/.kobweb/server/*.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
