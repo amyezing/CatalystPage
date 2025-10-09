@@ -18,7 +18,7 @@ steps:
       [
         'build',
         '-t', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
-        '-f', 'site/Dockerfile.frontend',
+        '-f', 'Dockerfile.frontend',  # ← Remove 'site/' from this path
         'site'
       ]
 
@@ -40,7 +40,8 @@ steps:
           --region asia-southeast1 \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars "DB_HOST=sm://$PROJECT_ID/db-connection-name,DB_PORT=3306,DB_NAME=catalystdb,DB_USER=sm://$PROJECT_ID/db-user,DB_PASS=sm://$PROJECT_ID/db-password,GCS_BUCKET_NAME=catalyst-cloud-storage,FIREBASE_CONFIG=sm://$PROJECT_ID/firebase-config"
+          --set-secrets="DB_HOST=db-connection-name:latest,DB_USER=db-user:latest,DB_PASS=db-password:latest,FIREBASE_CONFIG=firebase-config:latest" \
+          --set-env-vars "DB_PORT=3306,DB_NAME=catalystdb,GCS_BUCKET_NAME=catalyst-cloud-storage"
 
   # ===== DEPLOY FRONTEND =====
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
