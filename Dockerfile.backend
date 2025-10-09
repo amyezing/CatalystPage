@@ -6,19 +6,19 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Build from the site directory using Kobweb's backend approach
+# Build from the site directory
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# Build the Kobweb application which will create the backend JAR
-RUN ../gradlew kobwebStop kobwebBuild -x test
+# Debug: See what Kobweb tasks are actually available
+RUN ../gradlew tasks --all | grep -i kobweb
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy the JAR from Kobweb build output
+# We'll adjust this path once we know the correct build output
 COPY --from=builder /app/site/.kobweb/site/*.jar app.jar
 
 EXPOSE 8080
