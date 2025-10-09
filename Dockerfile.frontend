@@ -17,8 +17,8 @@ FROM nginx:alpine
 # Copy the production JS bundle from the correct location
 COPY --from=builder /app/site/build/kotlin-webpack/js/productionExecutable/ /usr/share/nginx/html/
 
-# Also copy any static resources
-COPY --from=builder /app/site/src/jsMain/resources/ /usr/share/nginx/html/ 2>/dev/null || echo "No static resources found"
+# Copy static resources (remove the shell command)
+COPY --from=builder /app/site/src/jsMain/resources/ /usr/share/nginx/html/
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
