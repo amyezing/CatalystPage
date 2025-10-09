@@ -1,10 +1,10 @@
 # -------- Stage 1: Build backend --------
 FROM gradle:8.8-jdk17 AS builder
-
 WORKDIR /app
 
-# First, check what files we actually have
-RUN ls -la
+# Debug: See what files are actually in the build context
+RUN echo "=== Current directory ===" && pwd
+RUN echo "=== Listing all files recursively ===" && find . -type f | head -20
 
 # Copy only the files that exist in site/ directory
 COPY build.gradle.kts ./
