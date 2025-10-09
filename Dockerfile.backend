@@ -3,8 +3,11 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Copy build files from site directory
-COPY build.gradle.kts settings.gradle.kts ./
+# First, check what files we actually have
+RUN ls -la
+
+# Copy only the files that exist in site/ directory
+COPY build.gradle.kts ./
 COPY gradle ./gradle
 COPY src ./src
 
@@ -16,7 +19,7 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Copy the JAR from backend build output
+# Copy the JAR from build output
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
