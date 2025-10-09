@@ -3,12 +3,9 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Copy Gradle wrapper and configs
-COPY gradlew ./
+# Copy build files from site directory
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
-
-# Copy backend source code (not frontend)
 COPY src ./src
 
 RUN chmod +x ./gradlew
