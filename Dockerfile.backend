@@ -14,12 +14,19 @@ RUN chmod +x ../gradlew
 # Build the proper JAR with all dependencies
 RUN ../gradlew jvmJar -x jsTest
 
+# Debug: See what's in the JAR
+RUN ls -la build/libs/
+RUN jar tf build/libs/*.jar | head -20
+
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 # Copy the proper JAR from Gradle build
 COPY --from=builder /app/site/build/libs/*.jar app.jar
+
+# Debug: Test if the JAR can run
+RUN java -jar app.jar --help || echo "JAR executed but exited"
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
