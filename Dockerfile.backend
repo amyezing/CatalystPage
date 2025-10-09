@@ -8,20 +8,21 @@ COPY gradlew ./
 COPY gradle ./gradle
 COPY build.gradle.kts settings.gradle.kts ./
 
-# Copy the source code
-COPY src ./src
+# Copy ALL source code (both frontend and backend)
+COPY site/src ./src
 
 # Make wrapper executable
 RUN chmod +x ./gradlew
 
-# Build the JAR
-RUN ./gradlew build -x test
+# Build the JAR (this will build both targets)
+RUN ./gradlew :site:build -x test
 
-# -------- Stage 2: Runtime --------  ← Fixed the stage number
+# -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Copy the JAR from site build output
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
