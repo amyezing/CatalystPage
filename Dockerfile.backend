@@ -1,26 +1,26 @@
 # -------- Stage 1: Build backend --------
 FROM gradle:8.8-jdk17 AS builder
+
 WORKDIR /app
 
-# Debug: See what files are actually in the build context
-RUN echo "=== Current directory ===" && pwd
-RUN echo "=== Listing all files recursively ===" && find . -type f | head -20
-
-# Copy only the files that exist in site/ directory
-COPY build.gradle.kts ./
+# Copy Gradle wrapper and configs
+COPY gradlew ./gradlew
+COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
-COPY src ./src
+
+# Copy the whole project (includes src + site)
+COPY . .
 
 RUN chmod +x ./gradlew
-RUN ./gradlew build --no-daemon
+RUN ./gradlew :site:build --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Copy the JAR from build output
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Copy backend jar from site build output
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
