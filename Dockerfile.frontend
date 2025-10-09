@@ -11,15 +11,14 @@ RUN chmod +x ./gradlew
 # Build production JS bundle
 RUN ./gradlew jsBrowserProductionWebpack -x jsTest
 
-# Debug: See what files were built
-RUN find . -name "*.js" -path "*/productionExecutable/*" | head -10
-RUN ls -la site/build/dist/js/productionExecutable/
-
 # -------- Stage 2: Serve with nginx --------
 FROM nginx:alpine
 
-# Copy the production JS bundle
-COPY --from=builder /app/site/build/dist/js/productionExecutable/ /usr/share/nginx/html/
+# Copy the production JS bundle from the correct location
+COPY --from=builder /app/site/build/kotlin-webpack/js/productionExecutable/ /usr/share/nginx/html/
+
+# Also copy any static resources
+COPY --from=builder /app/site/src/jsMain/resources/ /usr/share/nginx/html/ 2>/dev/null || echo "No static resources found"
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
