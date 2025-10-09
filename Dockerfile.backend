@@ -6,17 +6,25 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Build from the site directory using the standard build task
+# Build from the site directory
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
-RUN ../gradlew build -x test
+
+# Debug: See what files we have
+RUN echo "=== Files in site directory ===" && ls -la
+RUN echo "=== Build directory structure ===" && find . -name "build" -type d
+
+# Try compiling just the classes first
+RUN ../gradlew compileKotlinJvm --info
+
+# Then try building the JAR
+RUN ../gradlew jar --info
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy any JAR file from the build output
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
