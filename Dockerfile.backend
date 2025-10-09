@@ -14,15 +14,15 @@ COPY site/src ./src
 # Make wrapper executable
 RUN chmod +x ./gradlew
 
-# Build the JAR (this will build both targets)
-RUN ./gradlew :site:build -x test
+# Build only the JVM backend JAR (not the frontend)
+RUN ./gradlew :site:jvmJar -x test
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 # Copy the JAR from site build output
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+COPY --from=builder /app/site/build/libs/site-jvm.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
