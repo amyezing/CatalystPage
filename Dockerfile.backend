@@ -11,17 +11,15 @@ WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# Build JVM classes and create JAR manually
-RUN ../gradlew compileKotlinJvm -x jsTest
-
-# Create the JAR manually from compiled classes
-RUN jar cf app.jar -C build/classes/kotlin/jvm/main .
+# Build the proper JAR with all dependencies
+RUN ../gradlew jvmJar -x jsTest
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-COPY --from=builder /app/site/app.jar app.jar
+# Copy the proper JAR from Gradle build
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
