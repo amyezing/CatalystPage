@@ -11,14 +11,14 @@ WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# Debug: See what Kobweb tasks are actually available
-RUN ../gradlew tasks --all | grep -i kobweb
+# Build the Kobweb backend - use kobwebExport which should create the server
+RUN ../gradlew kobwebExport -x test
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# We'll adjust this path once we know the correct build output
+# Copy the JAR from Kobweb export output
 COPY --from=builder /app/site/.kobweb/site/*.jar app.jar
 
 EXPOSE 8080
