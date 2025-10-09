@@ -18,8 +18,8 @@ steps:
       [
         'build',
         '-t', 'gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA',
-        '-f', 'Dockerfile.frontend',  # ← Remove 'site/' from this path
-        'site'
+        '-f', 'Dockerfile.frontend',
+        '.'  # ← Change from 'site' to '.' (root context)
       ]
 
   # ===== PUSH IMAGES =====

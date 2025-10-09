@@ -3,22 +3,19 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Copy everything
+# Copy the site directory (build context is 'site')
 COPY . .
 
-# Build from the site directory
-WORKDIR /app/site
+RUN chmod +x ./gradlew
 
-RUN chmod +x ../gradlew
-
-# Build the frontend using Kobweb export (this creates the static files)
-RUN ../gradlew kobwebExport -x jsTest
+# Build the frontend using Kobweb export
+RUN ./gradlew kobwebExport -x jsTest
 
 # -------- Stage 2: Serve with nginx --------
 FROM nginx:alpine
 
 # Copy exported frontend files from the builder stage
-COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/
+COPY --from=builder /app/.kobweb/site/ /usr/share/nginx/html/
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
