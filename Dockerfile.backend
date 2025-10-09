@@ -14,14 +14,14 @@ COPY site/src ./src
 # Make wrapper executable
 RUN chmod +x ./gradlew
 
-# Build only the JVM backend JAR (not the frontend)
-RUN ./gradlew :site:jvmJar -x test
+# Build the JVM application using Kobweb's backend task
+RUN ./gradlew :site:backend -x test
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy the JAR from site build output (use wildcard for flexibility)
+# Copy the JAR from site build output
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
