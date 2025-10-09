@@ -3,25 +3,20 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 
-# Copy Gradle wrapper and build files
-COPY gradlew ./
-COPY gradle ./gradle
-COPY build.gradle.kts settings.gradle.kts ./
+# Copy everything
+COPY . .
 
-# Copy ALL source code (both frontend and backend)
-COPY site/src ./src
+# Build from the site directory using the standard build task
+WORKDIR /app/site
 
-# Make wrapper executable
-RUN chmod +x ./gradlew
-
-# Build the JVM application using Kobweb's backend task
-RUN ./gradlew :site:backend -x test
+RUN chmod +x ../gradlew
+RUN ../gradlew build -x test
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
-# Copy the JAR from site build output
+# Copy any JAR file from the build output
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
