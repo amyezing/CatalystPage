@@ -3,13 +3,14 @@ options:
 
 steps:
   # ===== BACKEND BUILD =====
+  # ===== BACKEND BUILD =====
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
         '-t', 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA',
         '-f', 'Dockerfile.backend',
-        'site'  # ← Build context is now the site directory
+        '.'  # ← Change from 'site' to '.' (root directory)
       ]
 
   # ===== FRONTEND BUILD =====
