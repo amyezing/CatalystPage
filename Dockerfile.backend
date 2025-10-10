@@ -29,4 +29,4 @@ COPY --from=builder /app/site/build/libs/*.jar app.jar
 RUN java -jar app.jar --help || echo "JAR executed but exited"
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "app.jar", "ApplicationKt"]
+ENTRYPOINT ["java", "-cp", "app.jar", "io.ktor.server.netty.EngineMain"]
