@@ -6,13 +6,18 @@ COPY . .
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
-RUN ../gradlew jvmJar -x jsTest
+# Use installDist instead of jvmJar - creates proper application distribution
+RUN ../gradlew installDist -x jsTest
+
+# Debug: See what was created
+RUN find build/install/ -type f
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+# Copy the installed application (not just the JAR)
+COPY --from=builder /app/site/build/install/site/ /app/
 
 EXPOSE 8080
-# Add debugging to see what's happening
-CMD sh -c 'echo "=== Starting Application ===" && java -jar app.jar 2>&1 || (echo "=== java -jar failed, trying with classpath ===" && java -cp app.jar io.ktor.server.netty.EngineMain 2>&1) || echo "=== All startup methods failed ==="'
+# Use the startup script created by installDist
+CMD ["./bin/site"]
