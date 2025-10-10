@@ -8,7 +8,7 @@ WORKDIR /app/site
 RUN chmod +x ../gradlew
 RUN ../gradlew jvmJar -x jsTest
 
-# ADD THIS DEBUGGING STEP:
+# Debug: Look for main classes
 RUN echo "=== Looking for main classes ===" && \
     jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
 
@@ -18,4 +18,5 @@ WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "app.jar", "io.ktor.server.netty.EngineMain"]
+# FIX THIS LINE - Use the correct main class we found
+ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
