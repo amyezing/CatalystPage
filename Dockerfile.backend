@@ -14,4 +14,5 @@ WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "app.jar", "io.ktor.server.netty.EngineMain"]
+# Add debugging and use shell form to capture output
+CMD java -cp app.jar io.ktor.server.netty.EngineMain || (echo "Application failed to start" && sleep 30)
