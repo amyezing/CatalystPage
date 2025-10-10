@@ -8,19 +8,10 @@ WORKDIR /app/site
 RUN chmod +x ../gradlew
 RUN ../gradlew jvmJar -x jsTest
 
-RUN ls -la build/libs/
-RUN jar tf build/libs/*.jar | head -20
-
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
-# Debug: Test if the JAR can run
-RUN java -jar app.jar --help || echo "JAR executed but exited"
-
-# Debug: Find the main class (THIS SHOULD BE IN STAGE 2)
-RUN jar tf app.jar | grep -E "(Main|Application)\.class" | head -5 || echo "No obvious main class found"
-
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "app.jar", "io.ktor.server.netty.EngineMain"]
+CMD java -cp app.jar -Dktor.deployment.port=$PORT io.ktor.server.netty.EngineMain
