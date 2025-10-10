@@ -11,20 +11,22 @@ WORKDIR /app/site
 
 RUN chmod +x ../gradlew
 
-# CHANGE THIS: Use installDist instead of jvmJar
-RUN ../gradlew installDist -x jsTest
+# Build the proper JAR with all dependencies
+RUN ../gradlew jvmJar -x jsTest
 
-# Debug: See what was created
-RUN find build/install/ -type f
+# Debug: See what's in the JAR
+RUN ls -la build/libs/
+RUN jar tf build/libs/*.jar | head -20
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
+# Copy the proper JAR from Gradle build
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
-# CHANGE THIS: Copy the installed application instead of just the JAR
-COPY --from=builder /app/site/build/install/site/ /app/
+# Debug: Test if the JAR can run
+RUN java -jar app.jar --help || echo "JAR executed but exited"
 
-# CHANGE THIS: Use the startup script instead of java -jar
 EXPOSE 8080
-CMD ["./bin/site"]
+ENTRYPOINT ["java", "-cp", "app.jar", "ApplicationKt"]
