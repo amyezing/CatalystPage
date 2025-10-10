@@ -25,8 +25,9 @@ import kotlinx.coroutines.launch
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
-    embeddedServer(Netty, port = port, module = Application::module).start(wait = true)
     println("Server running on port $port")
+    embeddedServer(Netty, port = port, module = Application::module).start(wait = true)
+
 }
 
 fun Application.module() {
