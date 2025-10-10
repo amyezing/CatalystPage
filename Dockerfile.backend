@@ -8,11 +8,14 @@ WORKDIR /app/site
 RUN chmod +x ../gradlew
 RUN ../gradlew jvmJar -x jsTest
 
+# ADD THIS DEBUGGING STEP:
+RUN echo "=== Looking for main classes ===" && \
+    jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
+
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
-# Add debugging and use shell form to capture output
-CMD java -cp app.jar io.ktor.server.netty.EngineMain || (echo "Application failed to start" && sleep 30)
+ENTRYPOINT ["java", "-cp", "app.jar", "io.ktor.server.netty.EngineMain"]
