@@ -41,11 +41,10 @@ steps:
           --platform managed \
           --allow-unauthenticated \
           --set-secrets="DB_HOST=db-connection-name:latest,DB_USER=db-user:latest,DB_PASS=db-password:latest,FIREBASE_CONFIG=firebase-config:latest" \
-          --set-env-vars "DB_PORT=3306,DB_NAME=catalystdb,GCS_BUCKET_NAME=catalyst-cloud-storage,PORT=8080" \
+          --set-env-vars "DB_PORT=3306,DB_NAME=catalystdb,GCS_BUCKET_NAME=catalyst-cloud-storage" \
           --timeout=600s \
           --cpu=1 \
           --memory=1Gi
-
   # ===== DEPLOY FRONTEND =====
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'

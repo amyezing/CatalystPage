@@ -13,16 +13,5 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
-# Create a simple application.conf if needed
-RUN echo 'ktor { \
-    deployment { \
-        port = ${PORT:-8080} \
-        port = ${?PORT} \
-    } \
-    application { \
-        modules = [ com.example.ApplicationKt.module ] \
-    } \
-}' > application.conf
-
 EXPOSE 8080
 ENTRYPOINT ["java", "-cp", "app.jar", "io.ktor.server.netty.EngineMain"]
