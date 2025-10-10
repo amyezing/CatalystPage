@@ -18,5 +18,5 @@ WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
-# FIX THIS LINE - Use the correct main class we found
-ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
+# Try running as executable JAR
+CMD ["java", "-jar", "app.jar"]
