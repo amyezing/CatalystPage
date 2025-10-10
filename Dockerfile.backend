@@ -13,10 +13,10 @@ RUN echo "=== Looking for main classes ===" && \
     jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
 
 # -------- Stage 2: Runtime --------
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
+
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
-# FIX THIS LINE - Use the correct main class we found
 ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
