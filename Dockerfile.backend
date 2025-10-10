@@ -6,18 +6,17 @@ COPY . .
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
-# Use installDist instead of jvmJar - creates proper application distribution
-RUN ../gradlew installDist -x jsTest
+RUN ../gradlew jvmJar -x jsTest
 
-# Debug: See what was created
-RUN find build/install/ -type f
+# Debug: Look for main classes
+RUN echo "=== Looking for main classes ===" && \
+    jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-# Copy the installed application (not just the JAR)
-COPY --from=builder /app/site/build/install/site/ /app/
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 EXPOSE 8080
-# Use the startup script created by installDist
-CMD ["./bin/site"]
+# FIX THIS LINE - Use the correct main class we found
+ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
