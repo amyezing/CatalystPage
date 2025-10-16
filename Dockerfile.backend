@@ -5,23 +5,23 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/site
 
-# Build the JAR with proper manifest
-RUN ../gradlew jvmJar -x jsTest --no-daemon
+# Build the fat JAR
+RUN ../gradlew fatJar -x jsTest --no-daemon
 
-# Verify the manifest
-RUN jar xf build/libs/catalyst-backend.jar META-INF/MANIFEST.MF && \
-    echo "=== MANIFEST CONTENTS ===" && \
-    cat META-INF/MANIFEST.MF
+# Debug: Verify the JAR
+RUN echo "=== JAR FILES ===" && \
+    ls -la build/libs/ && \
+    jar tf build/libs/*-all.jar | grep ApplicationKt || echo "ApplicationKt NOT FOUND!"
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Copy the JAR
-COPY --from=builder /app/site/build/libs/catalyst-backend.jar app.jar
+# Copy the fat JAR
+COPY --from=builder /app/site/build/libs/*-all.jar app.jar
 
 EXPOSE 8080
 
-# Use simple jar execution (manifest should handle main class)
+# Run the application
 CMD ["java", "-jar", "app.jar"]
