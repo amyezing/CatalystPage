@@ -6,27 +6,13 @@ COPY . .
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
-RUN ../gradlew jvmJar -x jsTest --console=plain
-
-# Debug: Check what's actually in the JAR
-RUN echo "=== JAR CONTENTS ===" && \
-    ls -la build/libs/ && \
-    echo "=== Looking for ANY ApplicationKt class ===" && \
-    jar tf build/libs/*.jar | grep "ApplicationKt" || echo "NO APPLICATIONKT CLASS FOUND!" && \
-    echo "=== All class files ===" && \
-    jar tf build/libs/*.jar | grep "\.class$" | head -20
+RUN ../gradlew jvmJar -x jsTest
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jre-jammy
-
 WORKDIR /app
+
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
-# Debug the final JAR
-RUN echo "=== FINAL JAR CHECK ===" && \
-    jar tf app.jar | grep "ApplicationKt" || echo "WARNING: ApplicationKt not found in final JAR!"
-
 EXPOSE 8080
-
-# Use -jar instead of -cp (let the JAR manifest handle main class)
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
