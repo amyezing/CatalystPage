@@ -25,18 +25,10 @@ import kotlinx.coroutines.launch
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
-    println("🚀 STARTING MINIMAL SERVER on port $port")
+    println("🚀 Starting Catalyst backend on port $port")
 
-    embeddedServer(Netty, port = port, host = "0.0.0.0") {
-        routing {
-            get("/") {
-                call.respondText("Server is running!")
-            }
-            get("/health") {
-                call.respondText("healthy")
-            }
-        }
-    }.start(wait = true)
+    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
 }
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")

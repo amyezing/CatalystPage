@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kotlin.serialization)
-    // alias(libs.plugins.kobwebx.markdown)
+
 }
 
 group = "catalystpage.com"
@@ -31,7 +31,7 @@ kobweb {
                     href = "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
                 }
                 script {
-                    src ="https://accounts.google.com/gsi/client"
+                    src = "https://accounts.google.com/gsi/client"
                     async = true
                     defer = true
                 }
@@ -47,21 +47,17 @@ kobweb {
                     href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
                     rel = "stylesheet"
                 }
-
             }
         }
     }
 }
 
-
-
 kotlin {
-    configAsKobwebApplication("com", includeServer = true)
+    configAsKobwebApplication("catalystpage.com", includeServer = true)
 
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization)
-
         }
         jsMain.dependencies {
             implementation(libs.compose.runtime)
@@ -78,13 +74,9 @@ kotlin {
             implementation(npm("firebase", "11.10.0"))
             implementation(npm("html5-qrcode", "2.3.8"))
             implementation(npm("qrcode", "1.5.4"))
-
-
-            // implementation(libs.kobwebx.markdown)
-
         }
         jvmMain.dependencies {
-            compileOnly(libs.kobweb.api) // Provided by Kobweb backend at runtime
+            compileOnly(libs.kobweb.api)
             implementation(libs.mariadb.jdbc)
             implementation(libs.ktor.core)
             implementation(libs.ktor.netty)
@@ -94,20 +86,19 @@ kotlin {
             implementation(libs.ktor.auth)
             implementation(libs.exposed.core)
             implementation(libs.exposed.dao)
+            implementation(libs.exposed.jdbc)
             implementation(libs.hikari.cp)
             implementation(libs.date.time)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.exposed.jdbc)
-            implementation("org.slf4j:slf4j-simple:2.0.9")
             implementation(libs.server.cors)
             implementation(libs.google.cloud)
             implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
             implementation("com.sun.mail:jakarta.mail:2.0.1")
             implementation(libs.ktor.websocket)
-
-
+            implementation("org.slf4j:slf4j-simple:2.0.9")
         }
     }
 }
+
 
 

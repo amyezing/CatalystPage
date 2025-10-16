@@ -10,9 +10,15 @@ RUN ../gradlew jvmJar -x jsTest
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jre-jammy
+
 WORKDIR /app
 
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+# Copy the JAR explicitly
+COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar
 
+# Environment variable for Cloud Run
+ENV PORT=8080
 EXPOSE 8080
+
+# Run the backend
 ENTRYPOINT ["java", "-jar", "app.jar"]
