@@ -1,5 +1,6 @@
 package catalystpage.com.service
 
+import catalystpage.com.db.DbConnection
 import catalystpage.com.entity.LabelEntity
 import catalystpage.com.entity.ProductEntity
 import catalystpage.com.entity.ProductVariantEntity
@@ -13,8 +14,15 @@ import java.time.Instant
 
 object ProductService {
 
-    fun getAll(): List<ProductDTO> = transaction {
-        ProductEntity.all().map { it.toDTO(includeVariants = true, includeLabels = true) }
+    fun getAll(): List<ProductDTO> {
+        // Check if database is connected before using transaction
+        if (!DbConnection.isConnected()) {
+            throw IllegalStateException("Database not connected. Please call Database.connect() first.")
+        }
+
+        return transaction {
+            ProductEntity.all().map { it.toDTO() }
+        }
     }
 
     fun getById(id: Int): ProductDTO? = transaction {
