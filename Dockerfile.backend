@@ -8,9 +8,10 @@ WORKDIR /app/site
 RUN chmod +x ../gradlew
 RUN ../gradlew jvmJar -x jsTest
 
-# Debug: Look for main classes
-RUN echo "=== Looking for main classes ===" && \
-    jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
+# Debug: Check the built JAR
+RUN ls -la build/libs/ && \
+    echo "=== JAR contents ===" && \
+    jar tf build/libs/*.jar | head -20
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jdk
@@ -18,5 +19,15 @@ FROM eclipse-temurin:17-jdk
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
+# Verify the JAR is copied
+RUN ls -la /app/ && \
+    java -cp app.jar -XshowSettings:properties 2>&1 | grep "java.home"
+
 EXPOSE 8080
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Use shell form for better debugging
 ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]

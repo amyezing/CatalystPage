@@ -25,19 +25,19 @@ import kotlinx.coroutines.launch
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
-    println("Server running on port $port")
+    println("Starting server on port $port...")
     embeddedServer(Netty, host = "0.0.0.0", port = port, module = Application::module).start(wait = true)
 
 }
 
 fun Application.module() {
-    // Remove the launch block - connect directly
-    try {
-        DbConnection.connect()
-        println("Database connected")
-    } catch (e: Exception) {
-        println("Database connection failed: ${e.message}")
-        // Don't throw - just continue without database
+    launch {
+        try {
+            DbConnection.connect()
+            println("Database connected")
+        } catch (e: Exception) {
+            println("Database connection failed: ${e.message}")
+        }
     }
 
     install(ContentNegotiation) {
