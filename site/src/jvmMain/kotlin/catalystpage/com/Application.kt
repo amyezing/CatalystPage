@@ -22,6 +22,7 @@ import java.io.File
 import kotlin.time.Duration.Companion.seconds
 import io.ktor.server.websocket.*
 import kotlinx.coroutines.launch
+import model.HealthResponse
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
@@ -90,10 +91,10 @@ fun Application.module() {
         }
 
         get("/health") {
-            call.respond(mapOf(
-                "status" to "running",
-                "timestamp" to System.currentTimeMillis(),
-                "database" to if (DbConnection.isConnected()) "connected" else "offline"
+            call.respond(HealthResponse(
+                status = "running",
+                timestamp = System.currentTimeMillis(),
+                database = if (DbConnection.isConnected()) "connected" else "offline"
             ))
         }
 
