@@ -6,17 +6,18 @@ COPY . .
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
-RUN ../gradlew jvmJar -x jsTest
+# Use shadowJar to bundle all dependencies in one executable jar
+RUN ../gradlew shadowJar -x jsTest
 
-# Debug: Look for main classes
+# Debug: Check the contents of the jar (optional)
 RUN echo "=== Looking for main classes ===" && \
-    jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
+    jar tf build/libs/*-all.jar | grep ApplicationKt || true
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
-COPY --from=builder /app/site/build/libs/*.jar app.jar
+COPY --from=builder /app/site/build/libs/*-all.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "app.jar", "com.catalystpage.ApplicationKt"]
+ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
