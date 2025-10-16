@@ -33,9 +33,9 @@ object DbConnection {
 
     fun isConnected(): Boolean {
         return dataSource != null && try {
-            dataSource!!.connection.use {
+            dataSource!!.connection.use { conn ->
                 // Test if connection is actually working
-                true
+                conn.isValid(2) // 2 second timeout
             }
         } catch (e: Exception) {
             false
