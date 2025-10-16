@@ -28,9 +28,18 @@ object EnvConfig {
     val dbPass: String = getConfig("DB_PASS") ?: ""
     val dbHost: String = getConfig("DB_HOST") ?: "localhost"
     val dbPort: Int = try {
-        getConfig("DB_PORT")?.toInt() ?: 3306
-    } catch (e: NumberFormatException) {
-        println("❌ ERROR: DB_PORT must be a number, got: ${getConfig("DB_PORT")}. Using default 3306.")
+        val portConfig = getConfig("DB_PORT")
+        println("🔍 DEBUG: DB_PORT value from config: '$portConfig'")
+        when {
+            portConfig == null -> 3306
+            portConfig.toIntOrNull() != null -> portConfig.toInt()
+            else -> {
+                println("❌ WARNING: Invalid DB_PORT '$portConfig', using default 3306")
+                3306
+            }
+        }
+    } catch (e: Exception) {
+        println("❌ ERROR in DB_PORT config: ${e.message}, using default 3306")
         3306
     }
     val dbName: String = getConfig("DB_NAME") ?: "catalystdb"
