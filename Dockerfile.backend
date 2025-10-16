@@ -8,15 +8,20 @@ WORKDIR /app/site
 RUN chmod +x ../gradlew
 RUN ../gradlew jvmJar -x jsTest
 
-# Debug: Look for main classes
-RUN echo "=== Looking for main classes ===" && \
-    jar tf build/libs/*.jar | grep -E "\.class$" | grep -i "main" | head -10
+# Debug: Find the exact main class
+RUN echo "=== Finding main class ===" && \
+    jar tf build/libs/*.jar | grep "ApplicationKt.class" || echo "MAIN CLASS NOT FOUND!"
 
 # -------- Stage 2: Runtime --------
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/*.jar app.jar
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "app.jar", "com.catalystpage.ApplicationKt"]
+
+# FIXED: Use correct main class
+ENTRYPOINT ["java", "-cp", "app.jar", "catalystpage.com.ApplicationKt"]
