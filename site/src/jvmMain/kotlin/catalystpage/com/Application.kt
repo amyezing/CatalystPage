@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
 import io.ktor.server.websocket.*
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import model.HealthResponse
 
@@ -34,15 +35,20 @@ fun main() {
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")
 
+    var databaseConnected = false
+    val databaseConnection = CompletableDeferred<Boolean>()
+
     // Start database connection but don't block
     launch {
         try {
             println("🔗 Attempting database connection...")
             DbConnection.connect()
+            databaseConnected = true
+            databaseConnection.complete(true)
             println("✅ Database connected successfully")
         } catch (e: Exception) {
             println("❌ Database connection failed: ${e.message}")
-            // Don't crash the application
+            databaseConnection.complete(false)
         }
     }
 
