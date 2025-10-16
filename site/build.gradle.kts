@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kotlin.serialization)
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     // alias(libs.plugins.kobwebx.markdown)
 }
 
@@ -112,12 +111,3 @@ kotlin {
 }
 
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveBaseName.set("app")
-    archiveClassifier.set("")
-    archiveVersion.set("")
-
-    manifest {
-        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
-    }
-}

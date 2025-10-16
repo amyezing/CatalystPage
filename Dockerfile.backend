@@ -6,7 +6,7 @@ COPY . .
 WORKDIR /app/site
 
 RUN chmod +x ../gradlew
-RUN ../gradlew :site:shadowJar --no-daemon
+RUN ../gradlew jvmJar -x jsTest
 
 # Debug: Look for main classes
 RUN echo "=== Looking for main classes ===" && \
