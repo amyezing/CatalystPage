@@ -12,6 +12,7 @@ date-time = "0.41.1"
 kotlinx-datetime = "0.6.2"
 cors = "3.1.2"
 cloud = "2.26.0"
+shadow = "7.1.2"
 
 
 [libraries]
@@ -58,4 +59,4 @@ kobweb-worker = { id = "com.varabyte.kobweb.worker", version.ref = "kobweb" }
 kobwebx-markdown = { id = "com.varabyte.kobwebx.markdown", version.ref = "kobweb" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinx-serialization" }
-
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }

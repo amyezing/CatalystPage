@@ -2,12 +2,12 @@ import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
 import kotlinx.html.link
 import kotlinx.html.script
 
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kotlin.serialization)
-
 }
 
 group = "catalystpage.com"
@@ -100,5 +100,33 @@ kotlin {
     }
 }
 
+// Create a custom fat JAR task
+tasks.register<Jar>("fatJar") {
+    archiveBaseName.set("catalyst-backend")
+    archiveClassifier.set("all")
 
+    manifest {
+        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
+    }
 
+    // Include all runtime dependencies
+    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
+
+    // Include the compiled classes from jvmJar
+    with(tasks.getByName("jvmJar") as CopySpec)
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
+}
+
+tasks.named<Jar>("jvmJar") {
+    archiveBaseName.set("catalyst-backend")
+
+    manifest {
+        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
+    }
+
+    // Include all runtime dependencies to create a fat JAR
+    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

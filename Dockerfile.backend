@@ -5,20 +5,23 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/site
 
-RUN chmod +x ../gradlew
-RUN ../gradlew jvmJar -x jsTest
+# Build the JAR with proper manifest
+RUN ../gradlew jvmJar -x jsTest --no-daemon
+
+# Verify the manifest
+RUN jar xf build/libs/catalyst-backend.jar META-INF/MANIFEST.MF && \
+    echo "=== MANIFEST CONTENTS ===" && \
+    cat META-INF/MANIFEST.MF
 
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Copy the JAR explicitly
-COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar
+# Copy the JAR
+COPY --from=builder /app/site/build/libs/catalyst-backend.jar app.jar
 
-# Environment variable for Cloud Run
-ENV PORT=8080
 EXPOSE 8080
 
-# Run the backend
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Use simple jar execution (manifest should handle main class)
+CMD ["java", "-jar", "app.jar"]
