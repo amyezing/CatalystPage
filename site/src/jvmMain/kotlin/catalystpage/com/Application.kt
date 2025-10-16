@@ -24,12 +24,12 @@ import io.ktor.server.websocket.*
 import kotlinx.coroutines.launch
 
 fun main() {
-    val port = System.getenv("PORT")?.toInt() ?: 8080
-    println("🚀 STARTING SERVER on port $port")
+    // Cloud Run automatically sets PORT environment variable
+    val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
+    println("🚀 Starting server on port $port...")
 
     embeddedServer(Netty, host = "0.0.0.0", port = port, module = Application::module).start(wait = true)
 }
-
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")
 
