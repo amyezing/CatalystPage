@@ -4,20 +4,13 @@ FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
 
-# Clean and build only the JVM fat jar
-RUN ./gradlew :site:clean :site:jvmJar --no-daemon
+# Build the fat JAR (using Shadow plugin)
+RUN ./gradlew :site:shadowJar --no-daemon
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Copy the fat jar from the build stage
-COPY --from=builder /app/site/build/libs/catalyst-backend.jar app.jar
-
-# Optional: Add curl (useful for Cloud Run health checks)
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-EXPOSE 8080
-
-CMD ["java", "-jar", "app.jar"]
+# Copy the fat jar from the builder stage
+COPY --from=builder /app/site/build/libs/catalyst-b
