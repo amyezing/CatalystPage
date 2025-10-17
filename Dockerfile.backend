@@ -3,24 +3,21 @@ FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
 COPY . .
-WORKDIR /app/site
 
-# Clean first, then build
-RUN ../gradlew clean && ../gradlew fatJar -x jsTest --no-daemon
-
-# Debug what was built
-RUN echo "=== JAR FILES AFTER CLEAN BUILD ===" && \
-    find build/libs/ -name "*.jar" -exec ls -la {} \; && \
-    echo "=== CHECKING MANIFEST ===" && \
-    jar xf build/libs/*.jar META-INF/MANIFEST.MF 2>/dev/null && cat META-INF/MANIFEST.MF || echo "No manifest found"
+# Clean and build only the JVM fat jar
+RUN ./gradlew :site:clean :site:jvmJar --no-daemon
 
 # -------- Stage 2: Runtime --------
-FROM eclipse-temurin:17-jdk-jammy AS runtime
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Copy the fat jar (matches anything with -fat.jar)
-COPY --from=builder /app/site/build/libs/*-fat.jar app.jar
+# Copy the fat jar from the build stage
+COPY --from=builder /app/site/build/libs/catalyst-backend.jar app.jar
+
+# Optional: Add curl (useful for Cloud Run health checks)
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
+
 CMD ["java", "-jar", "app.jar"]
