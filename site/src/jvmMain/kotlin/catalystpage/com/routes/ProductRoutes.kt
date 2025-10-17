@@ -1,5 +1,6 @@
 package catalystpage.com.routes
 
+import catalystpage.com.db.DbConnection
 import catalystpage.com.service.ProductService
 import catalystpage.com.service.ProductVariantService
 import catalystpage.com.util.GcsService
@@ -17,42 +18,79 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 fun Route.productRoutes() {
-
     route("/products") {
         get {
-            val products = ProductService.getAll()
-            call.respond(products)
+            // ✅ Add database check
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@get
+            }
+
+            try {
+                val products = ProductService.getAll()
+                call.respond(products)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to fetch products: ${e.message}"))
+            }
         }
 
-        // GET /products/{id}
         get("{id}") {
+            // ✅ Add database check
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@get
+            }
+
             val id = call.parameters["id"]?.toIntOrNull()
             if (id == null) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid ID")
                 return@get
             }
 
-            val product = ProductService.getById(id)
-            if (product == null) {
-                call.respond(HttpStatusCode.NotFound, "Product not found")
-            } else {
-                call.respond(product)
+            try {
+                val product = ProductService.getById(id)
+                if (product == null) {
+                    call.respond(HttpStatusCode.NotFound, "Product not found")
+                } else {
+                    call.respond(product)
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to fetch product: ${e.message}"))
             }
         }
 
         get("{id}/variants") {
+            // ✅ Add database check
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@get
+            }
+
             val productId = call.parameters["id"]?.toIntOrNull()
             if (productId == null) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid product ID")
                 return@get
             }
 
-            val variants = ProductVariantService.getByProductId(productId)
-            call.respond(variants)
+            try {
+                val variants = ProductVariantService.getByProductId(productId)
+                call.respond(variants)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to fetch variants: ${e.message}"))
+            }
         }
 
-        // POST /products//change to cloud bucket
         post {
+            // ✅ Add database check (after parsing multipart but before service calls)
             val multipart = call.receiveMultipart()
             var name: String? = null
             var description: String? = null
@@ -61,7 +99,6 @@ fun Route.productRoutes() {
             var variantsJson: String? = null
             var labelsJson: String? = null
             var isAvailable: Boolean = true
-
 
             val json = Json { ignoreUnknownKeys = true }
 
@@ -73,7 +110,7 @@ fun Route.productRoutes() {
                             "description" -> description = part.value
                             "price" -> price = part.value.toDoubleOrNull()
                             "variants" -> variantsJson = part.value
-                            "labels" -> labelsJson = part.value // 🔹 capture labels
+                            "labels" -> labelsJson = part.value
                             "isAvailable" -> isAvailable = part.value.toBooleanStrictOrNull() ?: true
                         }
                     }
@@ -87,58 +124,96 @@ fun Route.productRoutes() {
                 part.dispose()
             }
 
+            // ✅ Check database AFTER parsing multipart data
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@post
+            }
+
             if (name == null || price == null) {
                 call.respond(HttpStatusCode.BadRequest, "Missing name or price")
                 return@post
             }
 
-            val variants = variantsJson?.let { json.decodeFromString<List<ProductVariantDTO>>(it) } ?: emptyList()
-            val labelIds = labelsJson?.let { json.decodeFromString<List<Int>>(it) } ?: emptyList() // 🔹 decode IDs
+            try {
+                val variants = variantsJson?.let { json.decodeFromString<List<ProductVariantDTO>>(it) } ?: emptyList()
+                val labelIds = labelsJson?.let { json.decodeFromString<List<Int>>(it) } ?: emptyList()
 
-            val created = ProductService.addProduct(
-                ProductDTO(
-                    id = 0,
-                    name = name!!,
-                    description = description,
-                    price = price!!,
-                    imageUrl = imageUrl,
-                    variants = variants,
-                    labels = labelIds.map { LabelDTO(it, "", null, 0) },
-                    isAvailable = isAvailable
+                val created = ProductService.addProduct(
+                    ProductDTO(
+                        id = 0,
+                        name = name!!,
+                        description = description,
+                        price = price!!,
+                        imageUrl = imageUrl,
+                        variants = variants,
+                        labels = labelIds.map { LabelDTO(it, "", null, 0) },
+                        isAvailable = isAvailable
+                    )
                 )
-            )
 
-            call.respond(HttpStatusCode.Created, created)
+                call.respond(HttpStatusCode.Created, created)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to create product: ${e.message}"))
+            }
         }
 
         put("{id}") {
+            // ✅ Add database check
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@put
+            }
+
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@put call.respond(HttpStatusCode.BadRequest, "Invalid ID")
 
-            val updatedProduct = call.receive<ProductDTO>()
-            val success = ProductService.updateProduct(id, updatedProduct)
+            try {
+                val updatedProduct = call.receive<ProductDTO>()
+                val success = ProductService.updateProduct(id, updatedProduct)
 
-            if (!success) {
-                call.respond(HttpStatusCode.NotFound, "Product not found")
-            } else {
-                // Respond with the updated product
-                val product = ProductService.getById(id)
-                call.respond(HttpStatusCode.OK, product!!)
+                if (!success) {
+                    call.respond(HttpStatusCode.NotFound, "Product not found")
+                } else {
+                    val product = ProductService.getById(id)
+                    call.respond(HttpStatusCode.OK, product!!)
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to update product: ${e.message}"))
             }
         }
 
         delete("{id}") {
+            // ✅ Add database check
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@delete
+            }
+
             val id = call.parameters["id"]?.toIntOrNull()
             if (id == null) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid ID")
                 return@delete
             }
 
-            val deleted = ProductService.deleteProduct(id)
-            if (deleted) {
-                call.respond(HttpStatusCode.NoContent)
-            } else {
-                call.respond(HttpStatusCode.NotFound, "Product not found")
+            try {
+                val deleted = ProductService.deleteProduct(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.NoContent)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Product not found")
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to delete product: ${e.message}"))
             }
         }
     }
