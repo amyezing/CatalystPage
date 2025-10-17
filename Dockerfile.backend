@@ -15,14 +15,12 @@ RUN echo "=== JAR FILES AFTER CLEAN BUILD ===" && \
     jar xf build/libs/*.jar META-INF/MANIFEST.MF 2>/dev/null && cat META-INF/MANIFEST.MF || echo "No manifest found"
 
 # -------- Stage 2: Runtime --------
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy AS runtime
 
 WORKDIR /app
 
-COPY --from=builder /app/site/build/libs/catalyst-backend-all.jar app.jar
-
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Copy the fat jar (matches anything with -fat.jar)
+COPY --from=builder /app/site/build/libs/*-fat.jar app.jar
 
 EXPOSE 8080
-
 CMD ["java", "-jar", "app.jar"]
