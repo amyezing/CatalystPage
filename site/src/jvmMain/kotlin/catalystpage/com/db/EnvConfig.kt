@@ -15,6 +15,7 @@ object EnvConfig {
         null
     }
 
+    // Helper function to read from environment variables first, then .env
     private fun getConfig(key: String): String? {
         // Try environment variable first (for Cloud Run)
         System.getenv(key)?.let { return it }
