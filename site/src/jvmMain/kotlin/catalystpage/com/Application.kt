@@ -41,27 +41,37 @@ fun main() {
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING - Cloud Run Ready")
 
-    // Initialize configuration first (this will trigger EnvConfig init)
-    println("🔧 Loading environment configuration...")
-
-    // Initialize database connection with retry logic
+    // Initialize database connection ONLY if environment variables are set
     val databaseConnection = CompletableDeferred<Boolean>()
+    var databaseConfigured = false
 
     launch {
         try {
-            println("🔗 Attempting database connection...")
-            println("   Host: ${EnvConfig.dbHost}")
-            println("   Port: ${EnvConfig.dbPort}")
-            println("   Database: ${EnvConfig.dbName}")
-            println("   User: ${EnvConfig.dbUser}")
+            // Check if database environment variables exist FIRST
+            val dbHost = System.getenv("DB_HOST")
+            val dbUser = System.getenv("DB_USER")
+            val dbPass = System.getenv("DB_PASSWORD") ?: System.getenv("DB_PASS")
 
-            DbConnection.connect()
-            databaseConnection.complete(true)
-            println("✅ Database connected successfully")
+            if (dbHost != null && dbUser != null && dbPass != null) {
+                println("🔗 Attempting database connection...")
+                println("   Host: $dbHost")
+                println("   Port: ${System.getenv("DB_PORT") ?: "3306"}")
+                println("   Database: ${System.getenv("DB_NAME") ?: "catalystdb"}")
+                println("   User: $dbUser")
+
+                DbConnection.connect()
+                databaseConnection.complete(true)
+                databaseConfigured = true
+                println("✅ Database connected successfully")
+            } else {
+                println("⚠️  No database configuration found - running without database")
+                println("   DB_HOST: ${if (dbHost != null) "set" else "not set"}")
+                println("   DB_USER: ${if (dbUser != null) "set" else "not set"}")
+                println("   DB_PASSWORD: ${if (dbPass != null) "set" else "not set"}")
+                databaseConnection.complete(false)
+            }
         } catch (e: Exception) {
             println("❌ Database connection failed: ${e.message}")
-            e.printStackTrace()
-            // Complete with false but don't crash - allow health checks to work
             databaseConnection.complete(false)
         }
     }
