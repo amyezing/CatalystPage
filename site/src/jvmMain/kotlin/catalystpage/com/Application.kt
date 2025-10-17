@@ -35,10 +35,24 @@ fun main() {
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")
 
+    // --- DEBUG ENV VARS ---
+    val dbHost = System.getenv("DB_HOST")
+    val dbPort = System.getenv("DB_PORT")
+    val dbUser = System.getenv("DB_USER")
+    val dbPassword = System.getenv("DB_PASSWORD")
+    println("DEBUG: DB_HOST=$dbHost")
+    println("DEBUG: DB_PORT=$dbPort")
+    println("DEBUG: DB_USER=$dbUser")
+    println("DEBUG: DB_PASSWORD=${if (dbPassword != null) "*****" else null}")
+
+    if (dbHost == null || dbPort == null || dbUser == null || dbPassword == null) {
+        println("❌ Missing one or more required DB environment variables. Exiting.")
+        return
+    }
+
     var databaseConnected = false
     val databaseConnection = CompletableDeferred<Boolean>()
 
-    // Start database connection but don't block
     launch {
         try {
             println("🔗 Attempting database connection...")
