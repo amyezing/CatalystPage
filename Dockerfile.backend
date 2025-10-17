@@ -5,28 +5,24 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/site
 
-# Use your custom fatJar task that includes all dependencies
-RUN ../gradlew fatJar -x jsTest --no-daemon
+# Clean first, then build
+RUN ../gradlew clean && ../gradlew jar -x jsTest --no-daemon
 
-# Debug: Check what was built
-RUN echo "=== JAR FILES ===" && \
-    ls -la build/libs/ && \
+# Debug what was built
+RUN echo "=== JAR FILES AFTER CLEAN BUILD ===" && \
+    find build/libs/ -name "*.jar" -exec ls -la {} \; && \
     echo "=== CHECKING MANIFEST ===" && \
-    jar xf build/libs/*-all.jar META-INF/MANIFEST.MF 2>/dev/null && cat META-INF/MANIFEST.MF || echo "No manifest found" && \
-    echo "=== CHECKING FOR MAIN CLASS ===" && \
-    jar tf build/libs/*-all.jar | grep "ApplicationKt.class" || echo "ApplicationKt not found!"
+    jar xf build/libs/*.jar META-INF/MANIFEST.MF 2>/dev/null && cat META-INF/MANIFEST.MF || echo "No manifest found"
 
 # -------- Stage 2: Runtime --------
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Copy the fat JAR (look for -all.jar)
-COPY --from=builder /app/site/build/libs/*-all.jar app.jar
+COPY --from=builder /app/site/build/libs/*.jar app.jar
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
 
-# Run the fat JAR
 CMD ["java", "-jar", "app.jar"]
