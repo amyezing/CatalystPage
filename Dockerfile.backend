@@ -5,23 +5,28 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/site
 
-# Build the fat JAR
+# Use your custom fatJar task that includes all dependencies
 RUN ../gradlew fatJar -x jsTest --no-daemon
 
-# Debug: Verify the JAR
+# Debug: Check what was built
 RUN echo "=== JAR FILES ===" && \
     ls -la build/libs/ && \
-    jar tf build/libs/*-all.jar | grep ApplicationKt || echo "ApplicationKt NOT FOUND!"
+    echo "=== CHECKING MANIFEST ===" && \
+    jar xf build/libs/*-all.jar META-INF/MANIFEST.MF 2>/dev/null && cat META-INF/MANIFEST.MF || echo "No manifest found" && \
+    echo "=== CHECKING FOR MAIN CLASS ===" && \
+    jar tf build/libs/*-all.jar | grep "ApplicationKt.class" || echo "ApplicationKt not found!"
 
 # -------- Stage 2: Runtime --------
-FROM eclipse-temurin:17-jre-jammy
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Copy the fat JAR
+# Copy the fat JAR (look for -all.jar)
 COPY --from=builder /app/site/build/libs/*-all.jar app.jar
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
 
-# Run the application
+# Run the fat JAR
 CMD ["java", "-jar", "app.jar"]
