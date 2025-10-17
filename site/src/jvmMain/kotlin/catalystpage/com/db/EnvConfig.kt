@@ -18,32 +18,26 @@ object EnvConfig {
     // Helper function to read from environment variables first, then .env
     private fun getConfig(key: String): String? {
         // Try environment variable first (for Cloud Run)
-        System.getenv(key)?.let { return it }
-        // Fall back to .env file (for local development)
-        return dotenv?.get(key)
-    }
-
-    // Database configuration
-    val dbUser: String = getConfig("DB_USER") ?: ""
-    val dbPass: String = getConfig("DB_PASS") ?: ""
-    val dbHost: String = getConfig("DB_HOST") ?: "localhost"
-    val dbPort: Int = try {
-        val portConfig = getConfig("DB_PORT")
-        println("🔍 DEBUG: DB_PORT value from config: '$portConfig'")
-        when {
-            portConfig == null -> 3306
-            portConfig.toIntOrNull() != null -> portConfig.toInt()
-            else -> {
-                println("❌ WARNING: Invalid DB_PORT '$portConfig', using default 3306")
-                3306
-            }
+        System.getenv(key)?.let {
+            println("✅ Loaded $key from environment")
+            return it
         }
-    } catch (e: Exception) {
-        println("❌ ERROR in DB_PORT config: ${e.message}, using default 3306")
-        3306
+        // Fall back to .env file (for local development)
+        return dotenv?.get(key)?.also {
+            println("✅ Loaded $key from .env file")
+        }
     }
-    val dbName: String = getConfig("DB_NAME") ?: "catalystdb"
 
+    private fun getRequiredConfig(key: String): String {
+        return getConfig(key) ?: throw RuntimeException("Required configuration '$key' not found")
+    }
+
+    // Database configuration - support both DB_PASS and DB_PASSWORD for compatibility
+    val dbUser: String = getRequiredConfig("DB_USER")
+    val dbPass: String = getConfig("DB_PASS") ?: getRequiredConfig("DB_PASSWORD") // Support both
+    val dbHost: String = getRequiredConfig("DB_HOST")
+    val dbPort: Int = getConfig("DB_PORT")?.toIntOrNull() ?: 3306
+    val dbName: String = getConfig("DB_NAME") ?: "catalystdb"
 
     private val firebaseConfig: Map<String, String> by lazy {
         getConfig("FIREBASE_CONFIG")?.let { jsonString ->
@@ -54,6 +48,7 @@ object EnvConfig {
             }
         } ?: emptyMap()
     }
+
     // Firebase configuration
     val firebaseApiKey: String = firebaseConfig["apiKey"] ?: ""
     val firebaseAuthDomain: String = firebaseConfig["authDomain"] ?: ""
@@ -62,10 +57,8 @@ object EnvConfig {
     val firebaseMessagingSenderId: String = firebaseConfig["messagingSenderId"] ?: ""
     val firebaseAppId: String = firebaseConfig["appId"] ?: ""
 
-    // GCS configuration - handle required fields
-    val gcsBucketName: String = getConfig("GCS_BUCKET_NAME")
-        ?: throw RuntimeException("GCS_BUCKET_NAME not set in environment or .env")
-
+    // GCS configuration
+    val gcsBucketName: String = getRequiredConfig("GCS_BUCKET_NAME")
     val gcsCredentialsPath: String = getConfig("GCS_CREDENTIALS_PATH") ?: ""
 
     // SMTP configuration
@@ -80,7 +73,14 @@ object EnvConfig {
         ?.split(",")
         ?.map { it.trim() }
         ?: emptyList()
+
+    init {
+        println("=".repeat(50))
+        println("📋 CONFIGURATION LOADED SUCCESSFULLY")
+        println("=".repeat(50))
+        println("Database: $dbHost:$dbPort/$dbName")
+        println("GCS Bucket: $gcsBucketName")
+        println("Environment variables loaded successfully")
+        println("=".repeat(50))
+    }
 }
-
-
-

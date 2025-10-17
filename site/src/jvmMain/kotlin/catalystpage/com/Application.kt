@@ -1,6 +1,7 @@
 package catalystpage.com
 
 import catalystpage.com.db.DbConnection
+import catalystpage.com.db.EnvConfig
 import catalystpage.com.routes.*
 import catalystpage.com.routes.admin.*
 import catalystpage.com.service.BadgeService
@@ -11,14 +12,11 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
-import java.io.File
 import kotlin.time.Duration.Companion.seconds
 import io.ktor.server.websocket.*
 import kotlinx.coroutines.CompletableDeferred
@@ -27,41 +25,43 @@ import model.HealthResponse
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
-    println("🚀 Starting Catalyst backend on port $port")
+    val host = System.getenv("HOST") ?: "0.0.0.0"
 
-    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
+    println("🚀 Starting Catalyst backend on $host:$port")
+    println("✅ PORT environment variable: $port")
+
+    embeddedServer(
+        factory = Netty,
+        port = port,
+        host = host,
+        module = Application::module
+    ).start(wait = true)
 }
+
 fun Application.module() {
-    println("📦 APPLICATION MODULE LOADING")
+    println("📦 APPLICATION MODULE LOADING - Cloud Run Ready")
 
-    // --- DEBUG ENV VARS ---
-    val dbHost = System.getenv("DB_HOST")
-    val dbPort = System.getenv("DB_PORT")
-    val dbUser = System.getenv("DB_USER")
-    val dbPassword = System.getenv("DB_PASSWORD")
-    println("DEBUG: DB_HOST=$dbHost")
-    println("DEBUG: DB_PORT=$dbPort")
-    println("DEBUG: DB_USER=$dbUser")
-    println("DEBUG: DB_PASSWORD=${if (dbPassword != null) "*****" else null}")
+    // Initialize configuration first (this will trigger EnvConfig init)
+    println("🔧 Loading environment configuration...")
 
-    if (dbHost == null || dbPort == null || dbUser == null || dbPassword == null) {
-        println("❌ Missing one or more required DB environment variables. Exiting.")
-        return
-    }
-
-    var databaseConnected = false
+    // Initialize database connection with retry logic
     val databaseConnection = CompletableDeferred<Boolean>()
 
     launch {
         try {
             println("🔗 Attempting database connection...")
+            println("   Host: ${EnvConfig.dbHost}")
+            println("   Port: ${EnvConfig.dbPort}")
+            println("   Database: ${EnvConfig.dbName}")
+            println("   User: ${EnvConfig.dbUser}")
+
             DbConnection.connect()
-            databaseConnected = true
             databaseConnection.complete(true)
             println("✅ Database connected successfully")
         } catch (e: Exception) {
             println("❌ Database connection failed: ${e.message}")
+            e.printStackTrace()
+            // Complete with false but don't crash - allow health checks to work
             databaseConnection.complete(false)
         }
     }
