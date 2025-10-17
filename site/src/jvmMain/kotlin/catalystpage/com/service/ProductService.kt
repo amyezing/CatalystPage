@@ -15,21 +15,21 @@ import java.time.Instant
 object ProductService {
 
     fun getAll(): List<ProductDTO> {
-        // Check if database is connected before using transaction
-        if (!DbConnection.isConnected()) {
-            throw IllegalStateException("Database not connected. Please call Database.connect() first.")
-        }
-
+        checkDatabaseConnection()
         return transaction {
             ProductEntity.all().map { it.toDTO() }
         }
     }
 
-    fun getById(id: Int): ProductDTO? = transaction {
-        ProductEntity.findById(id)?.toDTO(includeVariants = true, includeLabels = true)
+    fun getById(id: Int): ProductDTO? {
+        checkDatabaseConnection()
+        return transaction {
+            ProductEntity.findById(id)?.toDTO(includeVariants = true, includeLabels = true)
+        }
     }
 
     fun addProduct(data: ProductDTO, createdBy: Int? = null): ProductDTO = transaction {
+        checkDatabaseConnection()
         val product = ProductEntity.new {
             name = data.name
             description = data.description
@@ -67,6 +67,7 @@ object ProductService {
     }
 
     fun deleteProduct(id: Int): Boolean = transaction {
+        checkDatabaseConnection()
         ProductEntity.findById(id)?.let {
             it.delete()
             true
@@ -74,6 +75,7 @@ object ProductService {
     }
 
     fun updateProduct(id: Int, data: ProductDTO, updatedBy: Int? = null): Boolean = transaction {
+        checkDatabaseConnection()
         ProductEntity.findById(id)?.let { product ->
             val oldData = product.toDTO(includeVariants = true)
             product.apply {
@@ -97,45 +99,67 @@ object ProductService {
     }
 
 
-    fun searchByName(keyword: String): List<ProductDTO> = transaction {
-        ProductEntity.find { Products.name like "%$keyword%" }
-            .map { it.toDTO() }
+    fun searchByName(keyword: String): List<ProductDTO> {
+        checkDatabaseConnection() // ← ADD THIS
+        return transaction {
+            ProductEntity.find { Products.name like "%$keyword%" }
+                .map { it.toDTO() }
+        }
     }
 
-    fun getByPriceRange(min: Double, max: Double): List<ProductDTO> = transaction {
-        ProductEntity.find {
-            Products.price greaterEq min.toBigDecimal() and (Products.price lessEq max.toBigDecimal())
-        }.map { it.toDTO() }
+    fun getByPriceRange(min: Double, max: Double): List<ProductDTO> {
+        checkDatabaseConnection() // ← ADD THIS
+        return transaction {
+            ProductEntity.find {
+                Products.price greaterEq min.toBigDecimal() and (Products.price lessEq max.toBigDecimal())
+            }.map { it.toDTO() }
+        }
     }
 
-    fun getLatest(limit: Int): List<ProductDTO> = transaction {
-        ProductEntity.all()
-            .orderBy(Products.createdAt to SortOrder.DESC)
-            .limit(limit)
-            .map { it.toDTO() }
+    fun getLatest(limit: Int): List<ProductDTO> {
+        checkDatabaseConnection() // ← ADD THIS
+        return transaction {
+            ProductEntity.all()
+                .orderBy(Products.createdAt to SortOrder.DESC)
+                .limit(limit)
+                .map { it.toDTO() }
+        }
     }
 
-    fun paginate(offset: Int, limit: Int): List<ProductDTO> = transaction {
-        ProductEntity.all()
-            .limit(limit, offset.toLong())
-            .map { it.toDTO() }
+    fun paginate(offset: Int, limit: Int): List<ProductDTO> {
+        checkDatabaseConnection() // ← ADD THIS
+        return transaction {
+            ProductEntity.all()
+                .limit(limit, offset.toLong())
+                .map { it.toDTO() }
+        }
     }
 
     fun getProductVariantsWithProductInfo(): List<ProductVariantDTO> = transaction {
+        checkDatabaseConnection()
         ProductVariantEntity.all().map { it.toDTO() }
     }
 
-    fun deleteProduct(id: Int, deletedBy: Int? = null): Boolean = transaction {
-        ProductEntity.findById(id)?.let { product ->
-            val name = product.name
-            product.delete()
-            AuditService.log(
-                adminId = deletedBy,
-                action = "DELETE",
-                targetTable = "products",
-                targetId = id
-            )
-            true
-        } ?: false
+    fun deleteProduct(id: Int, deletedBy: Int? = null): Boolean {
+        checkDatabaseConnection() // ← ADD THIS
+        return transaction {
+            ProductEntity.findById(id)?.let { product ->
+                val name = product.name
+                product.delete()
+                AuditService.log(
+                    adminId = deletedBy,
+                    action = "DELETE",
+                    targetTable = "products",
+                    targetId = id
+                )
+                true
+            } ?: false
+        }
+    }
+
+    private fun checkDatabaseConnection() {
+        if (!DbConnection.isConnected()) {
+            throw IllegalStateException("Database not connected. Please call Database.connect() first.")
+        }
     }
 }

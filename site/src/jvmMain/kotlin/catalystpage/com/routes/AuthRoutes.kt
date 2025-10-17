@@ -1,5 +1,6 @@
 package catalystpage.com.routes
 
+import catalystpage.com.db.DbConnection
 import catalystpage.com.db.EnvConfig
 import catalystpage.com.service.UserService
 import dto.Role
@@ -13,6 +14,13 @@ fun Route.authRoutes() {
 
     route("/auth") {
         post("/sync") {
+            if (!DbConnection.isConnected()) {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf(
+                    "error" to "Database unavailable",
+                    "message" to "Please try again later"
+                ))
+                return@post
+            }
             val userDTO = try {
                 call.receive<UserDTO>().also {
                     println("✅ Received userDTO: $it")
@@ -24,7 +32,6 @@ fun Route.authRoutes() {
                 )
                 return@post
             }
-
             val firebaseUid = userDTO.firebaseUid.trim()
 
             if (firebaseUid.isEmpty()) {
