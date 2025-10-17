@@ -147,4 +147,7 @@ fun Application.module() {
             zoneRoutes()
         }
     }
+
+    println("✅ Application module loaded successfully")
+    println("🌐 Server is ready to accept requests on port ${System.getenv("PORT") ?: 8080}")
 }
