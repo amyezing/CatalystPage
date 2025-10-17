@@ -100,33 +100,33 @@ kotlin {
     }
 }
 
-//// Create a custom fat JAR task
-//tasks.register<Jar>("fatJar") {
-//    archiveBaseName.set("catalyst-backend")
-//    archiveClassifier.set("all")
-//
-//    manifest {
-//        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
-//    }
-//
-//    // Include all runtime dependencies
-//    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
-//
-//    // Include the compiled classes from jvmJar
-//    with(tasks.getByName("jvmJar") as CopySpec)
-//
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
-//}
-//
-//tasks.named<Jar>("jvmJar") {
-//    archiveBaseName.set("catalyst-backend")
-//
-//    manifest {
-//        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
-//    }
-//
-//    // Include all runtime dependencies to create a fat JAR
-//    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//}
+// Create a custom fat JAR task
+tasks.register<Jar>("fatJar") {
+    archiveBaseName.set("catalyst-backend")
+    archiveClassifier.set("all")
+
+    manifest {
+        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
+    }
+
+    // Include all runtime dependencies
+    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
+
+    // Include the compiled classes from jvmJar
+    with(tasks.getByName("jvmJar") as CopySpec)
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
+}
+
+tasks.named<Jar>("jvmJar") {
+    archiveBaseName.set("catalyst-backend")
+
+    manifest {
+        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
+    }
+
+    // Include all runtime dependencies to create a fat JAR
+    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

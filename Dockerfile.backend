@@ -6,25 +6,22 @@ COPY . .
 WORKDIR /app/site
 
 # Build the fat JAR
-RUN ../gradlew jvmJar -x jsTest --no-daemon
+RUN ../gradlew fatJar -x jsTest --no-daemon
 
-# Debug: Check the JAR
+# Debug: Verify the JAR
 RUN echo "=== JAR FILES ===" && \
     ls -la build/libs/ && \
-    echo "=== CHECKING MANIFEST ===" && \
-    jar xf build/libs/*.jar META-INF/MANIFEST.MF 2>/dev/null && cat META-INF/MANIFEST.MF || echo "No manifest found"
+    jar tf build/libs/*-all.jar | grep ApplicationKt || echo "ApplicationKt NOT FOUND!"
 
 # -------- Stage 2: Runtime --------
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Copy the JAR
-COPY --from=builder /app/site/build/libs/*.jar app.jar
-
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Copy the fat JAR
+COPY --from=builder /app/site/build/libs/*-all.jar app.jar
 
 EXPOSE 8080
 
-# FIXED: Use -jar instead of -cp for executable JARs
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application
+CMD ["java", "-jar", "app.jar"]
