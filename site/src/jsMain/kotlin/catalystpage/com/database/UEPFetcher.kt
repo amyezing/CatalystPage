@@ -1,5 +1,6 @@
 package catalystpage.com.database
 
+import catalystpage.com.util.Constants
 import dto.UserEcoPointsDTO
 import io.ktor.client.*
 import io.ktor.client.engine.js.*

@@ -1,5 +1,6 @@
 package catalystpage.com.database
 
+import catalystpage.com.util.Constants
 import dto.UpdateSettingsDTO
 import dto.UserNotificationDTO
 import io.ktor.client.*
