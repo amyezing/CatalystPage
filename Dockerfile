@@ -1,4 +1,3 @@
-cat > Dockerfile << 'EOF'
 # -------- Stage 1: Build frontend with Kobweb --------
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
