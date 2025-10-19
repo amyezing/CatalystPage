@@ -1,5 +1,6 @@
 package catalystpage.com.database
 
+import catalystpage.com.util.Constants
 import dto.UserDTO
 import dto.UserProfile
 import io.ktor.client.*
@@ -18,10 +19,6 @@ import org.jetbrains.compose.web.attributes.AutoComplete.Companion.url
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
 
-object Constants {
-    const val HOST = "catalyst-backend-184459898636.asia-southeast1.run.app"
-    const val PORT = 443
-}
 
 class JsUserFetcher {
     companion object {
