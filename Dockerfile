@@ -3,23 +3,16 @@ WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
 
-# Use the correct Kobweb export task
-RUN ./gradlew kobwebExport
+# Build production bundle without starting server
+RUN ./gradlew jsBrowserProductionWebpack
 
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy from Kobweb export output
-COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/
-
-# Move HTML files from pages/ to root
-RUN mv /usr/share/nginx/html/pages/* /usr/share/nginx/html/ && rmdir /usr/share/nginx/html/pages
-
-# Copy compiled Kotlin/JS application
-COPY --from=builder /app/site/build/kotlin-webpack/js/productionExecutable/ /usr/share/nginx/html/
-
-# Copy static resources
+# Copy from different build output locations
 COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/
+COPY --from=builder /app/site/build/distributions/ /usr/share/nginx/html/
+COPY --from=builder /app/site/build/kotlin-webpack/js/productionExecutable/ /usr/share/nginx/html/
 
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
