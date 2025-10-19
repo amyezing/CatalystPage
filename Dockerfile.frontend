@@ -11,9 +11,10 @@ RUN ./gradlew jsBrowserProductionWebpack -x jsTest
 # -------- Stage 2: Serve with nginx --------
 FROM nginx:alpine
 
+# Copy nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy ALL static files (HTML, CSS, images, etc.)
+# Copy ALL static files
 COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/
 
 # Copy the compiled JS files

@@ -8,11 +8,6 @@ WORKDIR /app/site
 # Build the fat JAR
 RUN ../gradlew fatJar -x jsTest --no-daemon
 
-# Debug: Verify the JAR
-RUN echo "=== JAR FILES ===" && \
-    ls -la build/libs/ && \
-    jar tf build/libs/*-all.jar | grep ApplicationKt || echo "ApplicationKt NOT FOUND!"
-
 # -------- Stage 2: Runtime --------
 FROM eclipse-temurin:17-jre-jammy
 
@@ -22,6 +17,4 @@ WORKDIR /app
 COPY --from=builder /app/site/build/libs/*-all.jar app.jar
 
 EXPOSE 8080
-
-# Run the application
 CMD ["java", "-jar", "app.jar"]
