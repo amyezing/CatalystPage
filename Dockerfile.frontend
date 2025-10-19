@@ -11,14 +11,13 @@ RUN ./gradlew jsBrowserProductionWebpack -x jsTest
 # -------- Stage 2: Serve with nginx --------
 FROM nginx:alpine
 
-# Install envsubst
-RUN apk add --no-cache gettext
-
-# Copy nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy the built frontend files from CORRECT location
+# Copy ALL static files (HTML, CSS, images, etc.)
+COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/
+
+# Copy the compiled JS files
 COPY --from=builder /app/site/build/kotlin-webpack/js/productionExecutable/ /usr/share/nginx/html/
 
 EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]  # ← SIMPLIFY THIS
+CMD ["nginx", "-g", "daemon off;"]
