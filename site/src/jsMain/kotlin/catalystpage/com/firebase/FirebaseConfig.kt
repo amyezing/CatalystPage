@@ -1,6 +1,5 @@
 package catalystpage.com.firebase
 
-import catalystpage.com.database.Constants
 import catalystpage.com.util.Constants
 import kotlinx.browser.window
 import kotlinx.coroutines.await
