@@ -1,24 +1,25 @@
 # -------- Stage 1: Build frontend --------
 FROM gradle:8.8-jdk17 AS builder
-
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
-
-# Build production JS bundle
 RUN ./gradlew jsBrowserProductionWebpack -x jsTest
 
-# -------- Stage 2: Serve with nginx --------
 FROM nginx:alpine
 
 # Copy nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy ALL static files
+# Copy ALL necessary files from different locations:
+# 1. Copy the main HTML and static resources
 COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/
 
-# Copy the compiled JS files
+# 2. Copy the compiled Kotlin/JS application
 COPY --from=builder /app/site/build/kotlin-webpack/js/productionExecutable/ /usr/share/nginx/html/
+
+# 3. Also copy from dist (might have additional files)
+COPY --from=builder /app/site/build/dist/js/productionExecutable/ /usr/share/nginx/html/
 
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
+
