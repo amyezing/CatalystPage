@@ -35,7 +35,7 @@ fun ShippingSummary(toastMessage: MutableState<String?>) {
 
     // ✅ Listen for global shipping updates
     DisposableEffect(Unit) {
-        val socket = WebSocket("wss://${Constants.HOST}/api/ws/shipping/global")
+        val socket = WebSocket("/api/ws/shipping/global")
 
         socket.onmessage = { event ->
             val message = event.data.toString()

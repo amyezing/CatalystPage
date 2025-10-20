@@ -8,7 +8,7 @@ import java.sql.DriverManager
 
 @Api
 fun time(context: ApiContext) {
-    val url = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
+    val url = EnvConfig.dbUrl
     val user = EnvConfig.dbUser
     val password = EnvConfig.dbPass
 

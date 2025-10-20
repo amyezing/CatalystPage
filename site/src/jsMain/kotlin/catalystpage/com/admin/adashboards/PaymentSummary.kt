@@ -77,7 +77,7 @@ fun PaymentSummary() {
                         Text("📷 Proof of Payment:")
                     }
                     Img(
-                        src =  "https://${Constants.HOST}/${summary.proofImage}",
+                        src =  "/${summary.proofImage}",
                         attrs = Modifier
                             .margin(top = 8.px)
                             .maxWidth(100.px)

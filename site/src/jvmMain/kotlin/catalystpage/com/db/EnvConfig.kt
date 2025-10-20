@@ -44,6 +44,17 @@ object EnvConfig {
     }
     val dbName: String = getConfig("DB_NAME") ?: "catalystdb"
 
+    val dbUrl: String get() = when {
+        System.getenv("K_SERVICE") != null -> {
+            // Production - Cloud SQL Unix socket
+            "jdbc:mariadb:///mydb?unixSocket=/cloudsql/ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db"
+        }
+        else -> {
+            // Local development - regular connection
+            "jdbc:mariadb://$dbHost:$dbPort/$dbName"
+        }
+    }
+
 
     private val firebaseConfig: Map<String, String> by lazy {
         getConfig("FIREBASE_CONFIG")?.let { jsonString ->
