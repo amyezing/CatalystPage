@@ -78,6 +78,7 @@ kotlin {
         jvmMain.dependencies {
             compileOnly(libs.kobweb.api)
             implementation(libs.mariadb.jdbc)
+            implementation(libs.cloud.sql)
             implementation(libs.ktor.core)
             implementation(libs.ktor.netty)
             implementation(libs.ktor.negotiation)
