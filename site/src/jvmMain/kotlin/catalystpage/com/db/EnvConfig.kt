@@ -46,8 +46,8 @@ object EnvConfig {
 
     val dbUrl: String get() = when {
         System.getenv("K_SERVICE") != null -> {
-            // Production - Cloud SQL Unix socket
-            "jdbc:mariadb:///mydb?unixSocket=/cloudsql/ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db"
+            // Production - Cloud SQL with Socket Factory
+            "jdbc:mariadb:///catalystdb?cloudSqlInstance=ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db&socketFactory=com.google.cloud.sql.mariadb.SocketFactory"
         }
         else -> {
             // Local development - regular connection
