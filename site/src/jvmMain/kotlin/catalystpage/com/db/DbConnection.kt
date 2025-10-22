@@ -10,32 +10,41 @@ object DbConnection {
 
     fun connect() {
         try {
+            val isCloudRun = System.getenv("K_SERVICE") != null
+
             val config = HikariConfig().apply {
-                jdbcUrl = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
+                if (isCloudRun) {
+                    // Cloud SQL MySQL configuration
+                    jdbcUrl = "jdbc:mysql:///${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
+                    driverClassName = "com.mysql.cj.jdbc.Driver"
+                    addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory")
+                    addDataSourceProperty("cloudSqlInstance", EnvConfig.dbHost)
+                } else {
+                    // Local MariaDB configuration
+                    jdbcUrl = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
+                    driverClassName = "org.mariadb.jdbc.Driver"
+                }
+
                 username = EnvConfig.dbUser
                 password = EnvConfig.dbPass
-                driverClassName = "org.mariadb.jdbc.Driver"
                 maximumPoolSize = 10
                 isAutoCommit = false
                 transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-                // REMOVE validate() - it might be throwing the exception
             }
 
             dataSource = HikariDataSource(config)
             Database.connect(dataSource!!)
-            println("✅ Database connected successfully")
+            println("✅ Database connected successfully (${if (isCloudRun) "Cloud SQL" else "Local MariaDB"})")
         } catch (e: Exception) {
             println("⚠️ Database connection failed: ${e.message}")
-            // CRITICAL: Don't rethrow the exception!
-            // The app should continue without database
+            // Don't rethrow - app continues without DB
         }
     }
 
     fun isConnected(): Boolean {
         return dataSource != null && try {
             dataSource!!.connection.use { conn ->
-                // Test if connection is actually working
-                conn.isValid(2) // 2 second timeout
+                conn.isValid(2)
             }
         } catch (e: Exception) {
             false
