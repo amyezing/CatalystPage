@@ -14,11 +14,9 @@ object DbConnection {
 
             val config = HikariConfig().apply {
                 if (isCloudRun) {
-                    // Cloud SQL MySQL configuration
-                    jdbcUrl = "jdbc:mysql:///${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
+                    // Cloud SQL MySQL configuration - CORRECT FORMAT
+                    jdbcUrl = "jdbc:mysql:///${EnvConfig.dbName}?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=${EnvConfig.dbHost}"
                     driverClassName = "com.mysql.cj.jdbc.Driver"
-                    addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory")
-                    addDataSourceProperty("cloudSqlInstance", EnvConfig.dbHost)
                 } else {
                     // Local MariaDB configuration
                     jdbcUrl = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
@@ -37,7 +35,6 @@ object DbConnection {
             println("✅ Database connected successfully (${if (isCloudRun) "Cloud SQL" else "Local MariaDB"})")
         } catch (e: Exception) {
             println("⚠️ Database connection failed: ${e.message}")
-            // Don't rethrow - app continues without DB
         }
     }
 
