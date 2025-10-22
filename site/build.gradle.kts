@@ -59,6 +59,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization)
         }
+
         jsMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.html.core)
@@ -75,10 +76,10 @@ kotlin {
             implementation(npm("html5-qrcode", "2.3.8"))
             implementation(npm("qrcode", "1.5.4"))
         }
+
         jvmMain.dependencies {
             compileOnly(libs.kobweb.api)
             implementation(libs.mariadb.jdbc)
-            implementation(libs.cloud.sql)
             implementation(libs.ktor.core)
             implementation(libs.ktor.netty)
             implementation(libs.ktor.negotiation)
