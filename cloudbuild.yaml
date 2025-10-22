@@ -31,32 +31,34 @@ steps:
 
   # ===== DEPLOY BACKEND =====
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
+    entrypoint: 'bash'
     args:
-      - 'run'
-      - 'deploy'
-      - 'catalyst-backend'
-      - '--image=gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA'
-      - '--region=asia-southeast1'
-      - '--platform=managed'
-      - '--allow-unauthenticated'
-      - '--memory=512Mi'
-      - '--cpu=1'
-      - '--timeout=300s'
+      - '-c'
+      - |
+        gcloud run deploy catalyst-backend \
+          --image gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA \
+          --region asia-southeast1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --set-secrets="DB_HOST=db-connection-name:latest,DB_USER=db-user:latest,DB_PASS=db-password:latest,FIREBASE_CONFIG=firebase-config:latest" \
+          --set-env-vars "DB_PORT=3306,DB_NAME=catalystdb,GCS_BUCKET_NAME=catalyst-cloud-storage" \
+          --timeout=300s \
+          --cpu=1 \
+          --memory=512Mi
 
   # ===== DEPLOY FRONTEND =====
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
+    entrypoint: 'bash'
     args:
-      - 'run'
-      - 'deploy'
-      - 'catalyst-frontend'
-      - '--image=gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA'
-      - '--region=asia-southeast1'
-      - '--platform=managed'
-      - '--allow-unauthenticated'
-      - '--memory=256Mi'
-      - '--cpu=1'
+      - '-c'
+      - |
+        gcloud run deploy catalyst-frontend \
+          --image gcr.io/$PROJECT_ID/catalyst-frontend:$COMMIT_SHA \
+          --region asia-southeast1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --memory=256Mi \
+          --cpu=1
 
 images:
   - 'gcr.io/$PROJECT_ID/catalyst-backend:$COMMIT_SHA'

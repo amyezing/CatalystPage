@@ -1,4 +1,4 @@
-# -------- Stage 1: Builder --------
+# Backend Dockerfile - Optimized for Ktor
 FROM gradle:8.8-jdk17 AS builder
 
 WORKDIR /app
@@ -8,13 +8,13 @@ WORKDIR /app/site
 # Build the fat JAR
 RUN ../gradlew fatJar -x jsTest --no-daemon
 
-# -------- Stage 2: Runtime --------
+# Runtime stage
 FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Copy the fat JAR
-COPY --from=builder /app/site/build/libs/*-all.jar app.jar
+# Copy the fat JAR with the correct filename pattern
+COPY --from=builder /app/site/build/libs/catalyst-backend-1.0-SNAPSHOT-all.jar app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
