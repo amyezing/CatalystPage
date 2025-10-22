@@ -1,20 +1,24 @@
-# Frontend Dockerfile - Use standard Compose task
+# Frontend Dockerfile - Debug version
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
 
-# Use standard Compose for Web build task
+# Use Kobweb build
 RUN ./gradlew :site:jsBrowserProductionWebpack
 
-FROM nginx:alpine
+# Debug: List what files were created
+RUN find /app/site -name "*.html" -o -name "*.js" -o -name "*.css" | head -20
+RUN ls -la /app/site/.kobweb/ 2>/dev/null || echo "No .kobweb directory"
+RUN ls -la /app/site/build/dist/ 2>/dev/null || echo "No build/dist directory"
 
-# Copy nginx config
+FROM nginx:alpine
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy from Compose output
-COPY --from=builder /app/site/build/dist/js/productionExecutable/ /usr/share/nginx/html/
-COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/
+# Try multiple possible output locations
+COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/ 2>/dev/null || echo "No .kobweb/site files"
+COPY --from=builder /app/site/build/dist/ /usr/share/nginx/html/ 2>/dev/null || echo "No build/dist files"
+COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/ 2>/dev/null || echo "No processedResources files"
 
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
