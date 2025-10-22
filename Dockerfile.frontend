@@ -1,24 +1,20 @@
-# Frontend Dockerfile - Direct approach
+# Frontend Dockerfile - Use standard Compose task
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
 
-# Change to site directory and build from there
-WORKDIR /app/site
-RUN ../gradlew kobwebBuild
+# Use standard Compose for Web build task
+RUN ./gradlew :site:jsBrowserProductionWebpack
 
 FROM nginx:alpine
 
 # Copy nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy from Kobweb output
-COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/
-
-# Move HTML files from pages/ to root
-RUN mv /usr/share/nginx/html/pages/* /usr/share/nginx/html/ && \
-    rmdir /usr/share/nginx/html/pages
+# Copy from Compose output
+COPY --from=builder /app/site/build/dist/js/productionExecutable/ /usr/share/nginx/html/
+COPY --from=builder /app/site/build/processedResources/js/main/public/ /usr/share/nginx/html/
 
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
