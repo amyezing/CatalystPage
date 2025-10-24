@@ -46,11 +46,11 @@ object EnvConfig {
 
     val dbUrl: String get() = when {
         System.getenv("K_SERVICE") != null -> {
-            // Production - Cloud SQL with Socket Factory
-            "jdbc:mariadb:///catalystdb?cloudSqlInstance=ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db&socketFactory=com.google.cloud.sql.mariadb.SocketFactory"
+            // Production - Cloud SQL MySQL with correct Socket Factory
+            "jdbc:mysql:///${dbName}?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db"
         }
         else -> {
-            // Local development - regular connection
+            // Local development - regular MariaDB connection
             "jdbc:mariadb://$dbHost:$dbPort/$dbName"
         }
     }

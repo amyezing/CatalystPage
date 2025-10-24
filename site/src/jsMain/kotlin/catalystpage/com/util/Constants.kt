@@ -27,11 +27,12 @@ object Constants {
 object Res {
     object Image {
         const val background = "background.svg"
-        const val logo = "logo.png"
-        const val main_image = "main_image.png"
-        const val about_image = "about_image.png"
-        const val auth1 = "auth1.png"
+        const val logo = "https://storage.googleapis.com/catalyst-cloud-storage/images/logo.png"
+        const val main_image = "https://storage.googleapis.com/catalyst-cloud-storage/images/main_image.png"
+        const val about_image = "https://storage.googleapis.com/catalyst-cloud-storage/images/about_image.png"
+        const val auth1 = "https://storage.googleapis.com/catalyst-cloud-storage/images/auth1.png"
     }
+
     object Icon {
         const val link = "link_icon.svg"
     }
