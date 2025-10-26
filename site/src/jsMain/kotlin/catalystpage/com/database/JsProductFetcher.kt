@@ -11,6 +11,7 @@ import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.browser.window
@@ -25,8 +26,12 @@ import org.w3c.fetch.RequestInit
 class JsProductFetcher : ProductFetcher {
 
     private val client = HttpClient(Js) {
+        expectSuccess = false // Don't throw automatically on 4xx/5xx
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true; isLenient = true })
+            json(Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+            })
         }
 
         defaultRequest {
@@ -38,44 +43,95 @@ class JsProductFetcher : ProductFetcher {
         }
     }
 
-    override suspend fun fetchProducts(): List<ProductDTO> =
-        client.get("api/products").body()
-
-    suspend fun fetchProductVariants(productId: String): List<ProductVariantDTO> =
-        client.get("api/products/$productId/variants").body()
-
-    suspend fun addProduct(product: ProductDTO, imageFile: File?): ProductDTO {
-        val formData = FormData().apply {
-            append("name", product.name)
-            append("description", product.description ?: "")
-            append("price", product.price.toString())
-            append("variants", Json.encodeToString(product.variants))
-            append("labels", Json.encodeToString(product.labels.map { it.id }))
-            if (imageFile != null) append("image", imageFile, imageFile.name)
+    // -------------------
+    // Generic handler
+    // -------------------
+    private suspend inline fun <reified T> handleResponse(response: HttpResponse): T? {
+        return when (response.status.value) {
+            in 200..299 -> response.body()
+            503 -> {
+                console.log("Backend database unavailable - returning empty data")
+                null
+            }
+            else -> {
+                console.log("HTTP ${response.status.value} error: ${response.status.description}")
+                null
+            }
         }
-
-        return client.post("api/products") {
-            setBody(formData) // <-- use setBody instead of body = formData
-        }.body()
     }
 
-    suspend fun fetchLabels(): List<LabelDTO> =
-        client.get("api/labels").body()
+    // -------------------
+    // Fetch operations
+    // -------------------
+    override suspend fun fetchProducts(): List<ProductDTO> {
+        return try {
+            val response = client.get("api/products")
+            handleResponse(response) ?: emptyList()
+        } catch (e: Exception) {
+            console.log("Network error fetching products: ${e.message}")
+            emptyList()
+        }
+    }
 
-    suspend fun addLabelToProduct(labelId: Int, productId: Int) =
-        client.post("api/labels/$labelId/products/$productId")
+    suspend fun fetchProductVariants(productId: String): List<ProductVariantDTO> {
+        return try {
+            val response = client.get("api/products/$productId/variants")
+            handleResponse(response) ?: emptyList()
+        } catch (e: Exception) {
+            console.log("Network error fetching variants: ${e.message}")
+            emptyList()
+        }
+    }
 
-    suspend fun removeLabelFromProduct(labelId: Int, productId: Int) =
-        client.delete("api/labels/$labelId/products/$productId")
+    // -------------------
+    // Create / Update
+    // -------------------
+    suspend fun createProduct(product: ProductDTO, imageFile: File?): ProductDTO {
+        return try {
+            val formData = FormData().apply {
+                append("name", product.name)
+                append("description", product.description ?: "")
+                append("price", product.price.toString())
+                append("variants", Json.encodeToString(product.variants))
+                append("labels", Json.encodeToString(product.labels.map { it.id }))
+                if (imageFile != null) append("image", imageFile, imageFile.name)
+            }
 
-    suspend fun getProductsByLabel(labelId: Int): List<ProductDTO> =
-        client.get("api/labels/$labelId/products").body()
+            val response = client.post("api/products") {
+                setBody(formData)
+            }
 
-    suspend fun updateProduct(product: ProductDTO): ProductDTO =
-        client.put("api/products/${product.id}") {
-            contentType(ContentType.Application.Json)
-            setBody(product)
-        }.body()
+            handleResponse<ProductDTO>(response)
+                ?: throw Exception("Failed to create product: ${response.status.description}")
+        } catch (e: Exception) {
+            console.log("Network error creating product with image: ${e.message}")
+            throw e
+        }
+    }
+
+    suspend fun updateProduct(product: ProductDTO): ProductDTO {
+        return try {
+            val response = client.put("api/products/${product.id}") {
+                contentType(ContentType.Application.Json)
+                setBody(product)
+            }
+            handleResponse<ProductDTO>(response)
+                ?: throw Exception("Failed to update product: ${response.status.description}")
+        } catch (e: Exception) {
+            console.log("Network error updating product: ${e.message}")
+            throw e
+        }
+    }
+
+    suspend fun fetchLabels(): List<LabelDTO> {
+        return try {
+            val response = client.get("api/labels")
+            handleResponse(response) ?: emptyList()
+        } catch (e: Exception) {
+            console.log("Network error fetching labels: ${e.message}")
+            emptyList()
+        }
+    }
 }
 
 

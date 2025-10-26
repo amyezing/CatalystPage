@@ -153,7 +153,7 @@ fun ProductManager() {
                         variants = variants,
                         labels = selectedLabelDTOs // 🔹 include labels
                     )
-                    val created = fetcher.addProduct(newProduct, imageFile)
+                    val created = fetcher.createProduct(newProduct, imageFile)
                     products = products + created
 
                     // Reset form
