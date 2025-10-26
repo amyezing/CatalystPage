@@ -14,7 +14,7 @@ cors = "3.1.2"
 cloud = "2.26.0"
 shadow = "7.1.2"
 mysql-connector = "8.0.33"
-cloud-sql-mysql = "1.20.1"
+cloud-sql-connector = "1.20.1"
 
 
 
@@ -52,8 +52,7 @@ ktor-client-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json"
 google-cloud = { module = "com.google.cloud:google-cloud-storage", version.ref = "cloud"}
 ktor-websocket = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor"}
 mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql-connector" }
-cloud-sql-mysql = { module = "com.google.cloud.sql:mysql-socket-factory", version.ref = "cloud-sql-mysql" }
-
+cloud-sql-mysql = { module = "com.google.cloud.sql:cloud-sql-connector-j-8", version.ref = "cloud-sql-connector" }
 
 
 
