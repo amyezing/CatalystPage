@@ -99,6 +99,7 @@ kotlin {
             implementation(libs.ktor.websocket)
             implementation("org.slf4j:slf4j-simple:2.0.9")
             implementation(libs.mysql.connector)
+            implementation(libs.cloud.sql.mysql)
         }
     }
 }
