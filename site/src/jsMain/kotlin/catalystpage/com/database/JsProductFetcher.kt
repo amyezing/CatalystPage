@@ -36,9 +36,8 @@ class JsProductFetcher : ProductFetcher {
 
         defaultRequest {
             url {
-                protocol = if (Constants.PORT == 443) URLProtocol.HTTPS else URLProtocol.HTTP
+                protocol = URLProtocol.HTTPS
                 host = Constants.HOST
-                port = Constants.PORT
             }
         }
     }

@@ -59,9 +59,18 @@ fun Application.module() {
 
     // ... rest of your configuration stays the same
     install(io.ktor.server.plugins.cors.routing.CORS) {
-        anyHost()
+        allowHost("www.catalystbeveragemanufacturing.com", schemes = listOf("https"))
+
+        // Optional — allow your Cloud Run domain too (frontend may call backend directly)
+        allowHost("catalyst-backend-184459898636.asia-southeast1.run.app", schemes = listOf("https"))
+
+        // Allow localhost for local dev
+        allowHost("localhost:8080", schemes = listOf("http"))
+        allowHost("127.0.0.1:8080", schemes = listOf("http"))
+
         allowCredentials = true
         allowNonSimpleContentTypes = true
+
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
@@ -69,6 +78,7 @@ fun Application.module() {
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Head)
+
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowHeader("X-Firebase-Uid")
