@@ -14,7 +14,7 @@ cors = "3.1.2"
 cloud = "2.26.0"
 shadow = "7.1.2"
 mysql-connector = "8.0.33"
-cloud-sql-mysql = "1.19.2"
+cloud-sql-mysql = "1.20.1"
 
 
 
