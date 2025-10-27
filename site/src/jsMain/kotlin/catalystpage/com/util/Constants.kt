@@ -17,7 +17,7 @@ object Constants {
     const val DETAILS_K1 = "Take the great tasting, good-for-your-gut beverage that's packed with probiotics wherever you go. The Fab Four Variety Pack is the perfect companion for your next big adventure. "
     const val ROBOTO_SERIF = "https://fonts.googleapis.com/css2?family=Roboto+Serif:ital,opsz,wght@0,8..144,100..900;1,8..144,100..900&display=swap"
 
-    const val HOST = "catalyst-backend-184459898636.asia-southeast1.run.app"
+    const val HOST = "images-fix---catalyst-backend-c3h2bpneja-as.a.run.app"
     const val PORT = 443
 
 
