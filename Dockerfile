@@ -1,18 +1,29 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
-
-# Build both targets in one command (KMP way)
 RUN ./gradlew :site:jsBrowserProductionWebpack :site:jvmJar --no-daemon
 
-# Backend stage
-FROM eclipse-temurin:17-jre-jammy as backend
-WORKDIR /app
-COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar
-CMD ["java", "-jar", "app.jar"]
+# Use nginx base and add JRE
+FROM nginx:alpine
+RUN apk add --no-cache openjdk17-jre
 
-# Frontend stage
-FROM nginx:alpine as frontend
+WORKDIR /app
+
+# Copy backend
+COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar
+
+# Copy frontend
 COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/
-RUN sed -i 's/listen\(.*\)80;/listen 8080;/' /etc/nginx/conf.d/default.conf
-CMD ["nginx", "-g", "daemon off;"]
+
+# Configure nginx to proxy API calls to backend
+RUN echo 'server {' > /etc/nginx/conf.d/default.conf
+RUN echo '    listen 8080;' >> /etc/nginx/conf.d/default.conf
+RUN echo '    root /usr/share/nginx/html;' >> /etc/nginx/conf.d/default.conf
+RUN echo '    index index.html;' >> /etc/nginx/conf.d/default.conf
+RUN echo '    location /api/ {' >> /etc/nginx/conf.d/default.conf
+RUN echo '        proxy_pass http://localhost:8081;' >> /etc/nginx/conf.d/default.conf
+RUN echo '    }' >> /etc/nginx/conf.d/default.conf
+RUN echo '}' >> /etc/nginx/conf.d/default.conf
+
+# Start backend on 8081, nginx on 8080
+CMD sh -c "java -jar app.jar -port=8081 & nginx -g 'daemon off;'"
