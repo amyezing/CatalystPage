@@ -1,18 +1,18 @@
 FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
+
+# Build both targets in one command (KMP way)
 RUN ./gradlew :site:jsBrowserProductionWebpack :site:jvmJar --no-daemon
 
-FROM eclipse-temurin:17-jre-jammy
+# Backend stage
+FROM eclipse-temurin:17-jre-jammy as backend
 WORKDIR /app
-
-# Fixed: Use apt-get for eclipse-temurin (Ubuntu-based)
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
-
 COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar
-COPY --from=builder /app/site/.kobweb/serve/ /usr/share/nginx/html/
+CMD ["java", "-jar", "app.jar"]
 
-RUN echo 'server { listen 8080; root /usr/share/nginx/html; index index.html; }' > /etc/nginx/nginx.conf
-
-# Direct command - more reliable than shell script
-CMD sh -c "java -jar app.jar & nginx -g 'daemon off;'"
+# Frontend stage
+FROM nginx:alpine as frontend
+COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/
+RUN sed -i 's/listen\(.*\)80;/listen 8080;/' /etc/nginx/conf.d/default.conf
+CMD ["nginx", "-g", "daemon off;"]
