@@ -1,8 +1,0 @@
-FROM gradle:8.8-jdk17 AS builder
-WORKDIR /app
-COPY . .
-RUN ./gradlew :site:jvmJar --no-daemon
-
-FROM eclipse-temurin:17-jre-jammy
-COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar
-CMD ["java", "-jar", "app.jar"]
