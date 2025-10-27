@@ -8,14 +8,12 @@ import dto.LabelDTO
 import dto.ProductDTO
 import dto.ProductVariantDTO
 import io.ktor.http.*
-import io.ktor.http.ContentDisposition.Companion.File
 import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.json.Json
-import java.io.File
 
 fun Route.productRoutes() {
     route("/products") {

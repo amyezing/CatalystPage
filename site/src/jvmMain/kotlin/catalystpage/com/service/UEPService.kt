@@ -1,10 +1,8 @@
 package catalystpage.com.service
 
 import catalystpage.com.model.Badges
-import catalystpage.com.model.EcoPointTransactions
 import catalystpage.com.model.UserBadges
 import catalystpage.com.model.UserEcoPoints
-import dto.EcoPointTransactionDTO
 import dto.UserEcoPointsDTO
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime

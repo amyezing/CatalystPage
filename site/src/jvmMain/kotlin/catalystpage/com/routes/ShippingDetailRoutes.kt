@@ -10,7 +10,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import model.CreateShippingDetailsRequest
 import model.UpdateShippingStatusRequest
-import kotlin.text.get
 
 fun Route.shippingRoutes() {
 

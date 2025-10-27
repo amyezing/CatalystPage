@@ -1,15 +1,12 @@
 package catalystpage.com.service
 
-import catalystpage.com.entity.OrderEntity
 import catalystpage.com.entity.PaymentEntity
 import catalystpage.com.model.Payments
 import catalystpage.com.util.GcsService
 import dto.PaymentDTO
-import dto.PaymentMethod
 import dto.PaymentStatus
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.math.BigDecimal
 
 object PaymentService {
     fun uploadProof(fileName: String, bytes: ByteArray): String {
