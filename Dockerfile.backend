@@ -1,10 +1,10 @@
-echo FROM gradle:8.8-jdk17 AS builder > Dockerfile.backend
-echo WORKDIR /app >> Dockerfile.backend
-echo COPY . . >> Dockerfile.backend
-echo RUN ./gradlew :site:jvmJar --no-daemon >> Dockerfile.backend
-echo. >> Dockerfile.backend
-echo FROM eclipse-temurin:17-jre-jammy >> Dockerfile.backend
-echo WORKDIR /app >> Dockerfile.backend
-echo COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar >> Dockerfile.backend
-echo EXPOSE 8080 >> Dockerfile.backend
-echo CMD ["java", "-jar", "app.jar"] >> Dockerfile.backend
+FROM gradle:8.8-jdk17 AS builder > Dockerfile.backend
+WORKDIR /app >> Dockerfile.backend
+COPY . . >> Dockerfile.backend
+RUN ./gradlew :site:jvmJar --no-daemon >> Dockerfile.backend
+. >> Dockerfile.backend
+FROM eclipse-temurin:17-jre-jammy >> Dockerfile.backend
+WORKDIR /app >> Dockerfile.backend
+COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar >> Dockerfile.backend
+EXPOSE 8080 >> Dockerfile.backend
+CMD ["java", "-jar", "app.jar"] >> Dockerfile.backend
