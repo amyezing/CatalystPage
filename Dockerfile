@@ -2,8 +2,8 @@ FROM gradle:8.8-jdk17 AS builder
 WORKDIR /app
 COPY . .
 
-# Build the fat JAR
-RUN ./gradlew :site:fatJar --no-daemon
+# Build both frontend AND backend
+RUN ./gradlew :site:jsBrowserProductionWebpack :site:fatJar --no-daemon
 
 FROM nginx:alpine
 RUN apk add --no-cache openjdk17-jre
@@ -13,10 +13,10 @@ WORKDIR /app
 # Copy the fat JAR
 COPY --from=builder /app/site/build/libs/catalyst-backend-1.0-SNAPSHOT-all.jar app.jar
 
-# Copy frontend
-COPY --from=builder /app/site/.kobweb/site/ /usr/share/nginx/html/
+# Copy frontend from the CORRECT path
+COPY --from=builder /app/site/.kobweb/site/pages/ /usr/share/nginx/html/
 
-# Configure nginx to proxy API calls to backend
+# Configure nginx
 RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 8080;
