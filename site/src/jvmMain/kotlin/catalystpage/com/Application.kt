@@ -60,6 +60,7 @@ fun Application.module() {
     // ... rest of your configuration stays the same
     install(io.ktor.server.plugins.cors.routing.CORS) {
         allowHost("www.catalystbeveragemanufacturing.com", schemes = listOf("https"))
+        allowHost("catalyst-frontend-c3h2bpneja-as.a.run.app", schemes = listOf("https"))
 
         // Optional — allow your Cloud Run domain too (frontend may call backend directly)
         allowHost("catalyst-backend-184459898636.asia-southeast1.run.app", schemes = listOf("https"))
