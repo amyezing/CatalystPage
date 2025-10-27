@@ -18,7 +18,7 @@ steps:
       [
         'build',
         '-t', 'gcr.io/$PROJECT_ID/catalyst-frontend:latest',
-        '-f', 'Dockerfile',
+        '-f', 'Dockerfile.frontend',  # FIXED: Use frontend-specific file
         '.'
       ]
 
