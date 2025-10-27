@@ -1,18 +1,22 @@
-FROM gradle:8.8-jdk17 AS builder
-WORKDIR /app
-COPY . .
-RUN chmod +x ./gradlew
-
-# Use Kobweb build command
-RUN ./gradlew :site:jsBrowserProductionWebpack
-
-FROM nginx:alpine
-
-# Configure nginx for port 8080 (CRITICAL for Cloud Run)
-RUN sed -i 's/listen\(.*\)80;/listen 8080;/' /etc/nginx/conf.d/default.conf
-
-# Copy from Kobweb output - this is where your HTML files with GCS URLs are
-COPY --from=builder /app/site/.kobweb/site/pages/ /usr/share/nginx/html/
-
-EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+echo FROM gradle:8.8-jdk17 AS builder > Dockerfile
+echo WORKDIR /app >> Dockerfile
+echo COPY . . >> Dockerfile
+echo RUN ./gradlew :site:jsBrowserProductionWebpack :site:jvmJar --no-daemon >> Dockerfile
+echo. >> Dockerfile
+echo FROM eclipse-temurin:17-jre-jammy >> Dockerfile
+echo WORKDIR /app >> Dockerfile
+echo. >> Dockerfile
+echo RUN microdnf install nginx >> Dockerfile
+echo. >> Dockerfile
+echo COPY --from=builder /app/site/build/libs/catalystpage.com.jar app.jar >> Dockerfile
+echo COPY --from=builder /app/site/.kobweb/serve/ /usr/share/nginx/html/ >> Dockerfile
+echo. >> Dockerfile
+echo RUN echo 'server { listen 8080; root /usr/share/nginx/html; index index.html; }' > /etc/nginx/nginx.conf >> Dockerfile
+echo. >> Dockerfile
+echo RUN echo '#!/bin/sh' > start.sh >> Dockerfile
+echo RUN echo 'java -jar app.jar &' >> start.sh >> Dockerfile
+echo RUN echo 'nginx -g "daemon off;"' >> start.sh >> Dockerfile
+echo RUN chmod +x start.sh >> Dockerfile
+echo. >> Dockerfile
+echo EXPOSE 8080 >> Dockerfile
+echo CMD ["./start.sh"] >> Dockerfile
