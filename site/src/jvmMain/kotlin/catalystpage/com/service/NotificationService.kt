@@ -1,11 +1,9 @@
 package catalystpage.com.service
 
 import catalystpage.com.model.UserNotificationsTable
-import catalystpage.com.model.Users
 import catalystpage.com.model.toNotificationDTO
 import dto.UpdateSettingsDTO
 import dto.UserNotificationDTO
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction

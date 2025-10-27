@@ -31,7 +31,8 @@ gradle.settingsEvaluated {
     dependencyResolutionManagement.repositories { kobwebSnapshots() }
 }
 
-rootProject.name = "com"
+rootProject.name = "CatalystPage"
 
 include(":site")
+
 

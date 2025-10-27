@@ -1,6 +1,5 @@
 package catalystpage.com.routes
 
-import catalystpage.com.model.Users
 import catalystpage.com.model.community.*
 import catalystpage.com.service.EcoService
 import catalystpage.com.service.EcoService.currentMonthYear

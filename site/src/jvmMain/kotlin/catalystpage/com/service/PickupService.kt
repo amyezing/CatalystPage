@@ -1,11 +1,9 @@
 package catalystpage.com.service
 
 import catalystpage.com.model.Pickups
-import catalystpage.com.model.Pickups.status
 import catalystpage.com.model.toPickupDTO
 import model.PickupDTO
 import model.PickupStatus
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.select

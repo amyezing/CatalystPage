@@ -1,20 +1,18 @@
-# Backend Dockerfile - Optimized for Ktor
-FROM gradle:8.8-jdk17 AS builder
-
-WORKDIR /app
-COPY . .
-WORKDIR /app/site
-
-# Build the fat JAR
-RUN ../gradlew fatJar -x jsTest --no-daemon
-
-# Runtime stage
-FROM eclipse-temurin:17-jre-jammy
-
-WORKDIR /app
-
-# Copy the fat JAR with the correct filename pattern
-COPY --from=builder /app/site/build/libs/catalyst-backend-1.0-SNAPSHOT-all.jar app.jar
-
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+:: Create a corrected Dockerfile.backend that uses your real jvmMain
+echo # Dockerfile.backend - Fixed version > Dockerfile.backend
+echo FROM gradle:8.8-jdk17 AS builder >> Dockerfile.backend
+echo WORKDIR /app >> Dockerfile.backend
+echo. >> Dockerfile.backend
+echo COPY . . >> Dockerfile.backend
+echo. >> Dockerfile.backend
+echo # Build the actual JAR from jvmMain >> Dockerfile.backend
+echo RUN ./gradlew :site:jvmJar --no-daemon >> Dockerfile.backend
+echo. >> Dockerfile.backend
+echo FROM eclipse-temurin:17-jre-jammy >> Dockerfile.backend
+echo WORKDIR /app >> Dockerfile.backend
+echo. >> Dockerfile.backend
+echo # Copy the actual JAR from the correct location >> Dockerfile.backend
+echo COPY --from=builder /app/site/build/libs/site-jvm.jar app.jar >> Dockerfile.backend
+echo. >> Dockerfile.backend
+echo EXPOSE 8080 >> Dockerfile.backend
+echo CMD ["java", "-jar", "app.jar"] >> Dockerfile.backend
