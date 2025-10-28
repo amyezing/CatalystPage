@@ -34,20 +34,6 @@ fun main() {
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")
 
-    // Start database connection async but don't block server startup
-    var databaseReady = false
-    launch {
-        try {
-            println("🔗 Attempting database connection...")
-            DbConnection.connect()
-            databaseReady = true
-            println("✅ Database connected successfully")
-        } catch (e: Exception) {
-            println("❌ Database connection failed: ${e.message}")
-        }
-    }
-
-    // Now setup the rest of your application
     install(ContentNegotiation) {
         json(Json {
             ignoreUnknownKeys = true
@@ -55,6 +41,10 @@ fun Application.module() {
             prettyPrint = false
         })
     }
+
+    // Start database connection async but don't block server startup
+    var databaseReady = false
+
 
     install(io.ktor.server.plugins.cors.routing.CORS) {
         allowHost("www.catalystbeveragemanufacturing.com", schemes = listOf("https"))
@@ -90,6 +80,11 @@ fun Application.module() {
     }
 
     routing {
+
+        get("/live") {
+            call.respondText("ALIVE", status = HttpStatusCode.OK)
+        }
+
         get("/") {
             call.respondText("Catalyst backend is running!")
         }
@@ -142,6 +137,16 @@ fun Application.module() {
             userEcoPointsRoutes(UserEcoPointsService())
             userRoutes()
             zoneRoutes()
+        }
+    }
+    launch {
+        try {
+            println("🔗 Attempting database connection...")
+            DbConnection.connect()
+            databaseReady = true
+            println("✅ Database connected successfully")
+        } catch (e: Exception) {
+            println("❌ Database connection failed: ${e.message}")
         }
     }
 }
