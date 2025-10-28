@@ -29,26 +29,22 @@ fun main() {
     embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
+
+
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")
 
-    var databaseConnected = false
-    val databaseConnection = CompletableDeferred<Boolean>()
-
-    // Start database connection but don't block
-    launch {
-        try {
-            println("🔗 Attempting database connection...")
-            DbConnection.connect()
-            databaseConnected = true
-            databaseConnection.complete(true)
-            println("✅ Database connected successfully")
-        } catch (e: Exception) {
-            println("❌ Database connection failed: ${e.message}")
-            databaseConnection.complete(false)
-        }
+    // ✅ Connect to database FIRST (blocking) before setting up routes
+    println("🔗 Attempting database connection...")
+    try {
+        DbConnection.connect()
+        println("✅ Database connected successfully")
+    } catch (e: Exception) {
+        println("❌ Database connection failed: ${e.message}")
+        // Don't exit - let health checks show the service is unhealthy
     }
 
+    // Now setup the rest of your application
     install(ContentNegotiation) {
         json(Json {
             ignoreUnknownKeys = true
@@ -57,15 +53,10 @@ fun Application.module() {
         })
     }
 
-    // ... rest of your configuration stays the same
     install(io.ktor.server.plugins.cors.routing.CORS) {
         allowHost("www.catalystbeveragemanufacturing.com", schemes = listOf("https"))
         allowHost("catalyst-frontend-c3h2bpneja-as.a.run.app", schemes = listOf("https"))
-
-        // Optional — allow your Cloud Run domain too (frontend may call backend directly)
         allowHost("catalyst-backend-184459898636.asia-southeast1.run.app", schemes = listOf("https"))
-
-        // Allow localhost for local dev
         allowHost("localhost:8080", schemes = listOf("http"))
         allowHost("127.0.0.1:8080", schemes = listOf("http"))
 
@@ -110,6 +101,15 @@ fun Application.module() {
                 timestamp = System.currentTimeMillis(),
                 database = if (DbConnection.isConnected()) "connected" else "offline"
             ))
+        }
+
+        // ✅ Add a readiness check for Cloud Run
+        get("/ready") {
+            if (DbConnection.isConnected()) {
+                call.respondText("READY", status = HttpStatusCode.OK)
+            } else {
+                call.respondText("DATABASE_NOT_READY", status = HttpStatusCode.ServiceUnavailable)
+            }
         }
 
         route("/api") {
