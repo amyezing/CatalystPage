@@ -106,15 +106,15 @@ kotlin {
 
 tasks.register<Jar>("fatJar") {
     archiveBaseName.set("catalyst-backend")
-    archiveVersion.set("1.0-SNAPSHOT")  // This creates the expected filename
-    archiveClassifier.set("all")        // This adds "-all" suffix
+    archiveVersion.set("1.0-SNAPSHOT")
+    archiveClassifier.set("all")
 
     manifest {
         attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
     }
 
-    // Include compiled classes from jvmMain
-    from(sourceSets["jvmMain"].output)
+    // Get the JVM compilation output directly
+    from(kotlin.targets["jvm"].compilations["main"].output)
 
     // Include all runtime dependencies
     from(configurations["jvmRuntimeClasspath"].map {
@@ -123,7 +123,6 @@ tasks.register<Jar>("fatJar") {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
-    exclude("module-info.class")
 }
 
 //tasks.named<Jar>("jvmJar") {
