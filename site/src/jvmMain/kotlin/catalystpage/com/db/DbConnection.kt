@@ -39,7 +39,7 @@ object DbConnection {
 
                 val config = HikariConfig().apply {
                     if (isCloudRun) {
-                        jdbcUrl = "jdbc:mysql:///${EnvConfig.dbName}?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=${EnvConfig.dbHost}"
+                        jdbcUrl = "jdbc:mysql:///${EnvConfig.dbName}?cloudSqlInstance=${EnvConfig.dbHost}&socketFactory=com.google.cloud.sql.mysql.SocketFactory"
                         driverClassName = "com.mysql.cj.jdbc.Driver"
                         println("🔍 DEBUG: Using Cloud SQL Socket Factory")
                     } else {
