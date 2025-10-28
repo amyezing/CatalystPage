@@ -34,14 +34,17 @@ fun main() {
 fun Application.module() {
     println("📦 APPLICATION MODULE LOADING")
 
-    // ✅ Connect to database FIRST (blocking) before setting up routes
-    println("🔗 Attempting database connection...")
-    try {
-        DbConnection.connect()
-        println("✅ Database connected successfully")
-    } catch (e: Exception) {
-        println("❌ Database connection failed: ${e.message}")
-        // Don't exit - let health checks show the service is unhealthy
+    // Start database connection async but don't block server startup
+    var databaseReady = false
+    launch {
+        try {
+            println("🔗 Attempting database connection...")
+            DbConnection.connect()
+            databaseReady = true
+            println("✅ Database connected successfully")
+        } catch (e: Exception) {
+            println("❌ Database connection failed: ${e.message}")
+        }
     }
 
     // Now setup the rest of your application
