@@ -39,7 +39,13 @@ object DbConnection {
 
                 val config = HikariConfig().apply {
                     if (isCloudRun) {
-                        jdbcUrl = "jdbc:mysql:///${EnvConfig.dbName}?cloudSqlInstance=${EnvConfig.dbHost}&socketFactory=com.google.cloud.sql.mysql.SocketFactory"
+                        // FIXED: Added timeout parameters and correct parameter order
+                        jdbcUrl = "jdbc:mysql:///${EnvConfig.dbName}?" +
+                                "cloudSqlInstance=${EnvConfig.dbHost}&" +
+                                "socketFactory=com.google.cloud.sql.mysql.SocketFactory&" +
+                                "connectTimeout=60000&" +
+                                "socketTimeout=60000&" +
+                                "useSSL=false"
                         driverClassName = "com.mysql.cj.jdbc.Driver"
                         println("🔍 DEBUG: Using Cloud SQL Socket Factory")
                     } else {
@@ -49,21 +55,23 @@ object DbConnection {
 
                     username = EnvConfig.dbUser
                     password = EnvConfig.dbPass
-                    maximumPoolSize = 3  // Reduced for Cloud Run
+                    maximumPoolSize = 3
                     minimumIdle = 1
                     isAutoCommit = false
                     transactionIsolation = "TRANSACTION_REPEATABLE_READ"
 
-                    connectionTimeout = 30000
-                    validationTimeout = 5000
-                    leakDetectionThreshold = 60000
+                    // Increased timeouts for Cloud SQL
+                    connectionTimeout = 60000
+                    validationTimeout = 10000
+                    leakDetectionThreshold = 120000
+                    maxLifetime = 1800000
                 }
 
                 dataSource = HikariDataSource(config)
 
-                // Test connection
+                // Test connection with longer timeout
                 dataSource!!.connection.use { conn ->
-                    if (conn.isValid(2)) {
+                    if (conn.isValid(10)) {
                         Database.connect(dataSource!!)
                         connected = true
                         isConnecting = false
@@ -73,7 +81,7 @@ object DbConnection {
 
             } catch (e: Exception) {
                 println("❌ Database connection attempt $attempts failed: ${e.message}")
-                e.printStackTrace()  // Add stack trace for more details
+                e.printStackTrace()
 
                 dataSource?.close()
                 dataSource = null
