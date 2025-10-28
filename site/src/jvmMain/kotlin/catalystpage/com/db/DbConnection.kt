@@ -112,6 +112,6 @@ object DbConnection {
     fun close() {
         dataSource?.close()
         dataSource = null
-        println("🔌 Database connection closed")
+        println("Database connection closed")
     }
 }
