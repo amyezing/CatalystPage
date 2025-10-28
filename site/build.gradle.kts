@@ -104,33 +104,45 @@ kotlin {
     }
 }
 
-// Create a custom fat JAR task
 tasks.register<Jar>("fatJar") {
     archiveBaseName.set("catalyst-backend")
+    archiveVersion.set("1.0-SNAPSHOT")
     archiveClassifier.set("all")
 
     manifest {
         attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
     }
 
-    // Include all runtime dependencies
-    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
+    // Get the JVM compilation output directly
+    from(kotlin.targets["jvm"].compilations["main"].output)
 
-    // Include the compiled classes from jvmJar
-    with(tasks.getByName("jvmJar") as CopySpec)
+    // Include all runtime dependencies
+    from(configurations["jvmRuntimeClasspath"].map {
+        if (it.isDirectory) it else zipTree(it)
+    })
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
 }
 
-tasks.named<Jar>("jvmJar") {
-    archiveBaseName.set("catalyst-backend")
-
-    manifest {
-        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
-    }
-
-    // Include all runtime dependencies to create a fat JAR
-    from(configurations.getByName("jvmRuntimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
+//tasks.named<Jar>("jvmJar") {
+//    archiveBaseName.set("catalyst-backend")
+//
+//    manifest {
+//        attributes["Main-Class"] = "catalystpage.com.ApplicationKt"
+//    }
+//
+//    // Include compiled classes from jvmMain
+//    from(sourceSets["jvmMain"].output)
+//
+//    // Include all runtime dependencies
+//    from(configurations["jvmRuntimeClasspath"].map {
+//        if (it.isDirectory) it else zipTree(it)
+//    })
+//
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//
+//    // Exclude signature files that cause conflicts
+//    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
+//    exclude("module-info.class")
+//}
