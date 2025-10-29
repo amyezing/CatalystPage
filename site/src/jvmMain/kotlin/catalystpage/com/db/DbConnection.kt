@@ -12,12 +12,10 @@ object DbConnection {
 
     fun connect() {
         synchronized(connectionLock) {
-            // If already connected or connecting, return
             if (dataSource != null || isConnecting) {
                 println("🔗 Database connection already established or in progress")
                 return
             }
-
             isConnecting = true
         }
 
@@ -33,45 +31,41 @@ object DbConnection {
 
                 val isCloudRun = System.getenv("K_SERVICE") != null
                 println("🔍 DEBUG: isCloudRun = $isCloudRun")
-                println("🔍 DEBUG: dbHost = '${EnvConfig.dbHost}'")
-                println("🔍 DEBUG: dbUser = '${EnvConfig.dbUser}'")
-                println("🔍 DEBUG: dbName = '${EnvConfig.dbName}'")
 
                 val config = HikariConfig().apply {
                     if (isCloudRun) {
-                        // FIXED: Added timeout parameters and correct parameter order
-                        jdbcUrl = "jdbc:mysql:///${EnvConfig.dbName}?" +
-                                "cloudSqlInstance=${EnvConfig.dbHost}&" +
-                                "socketFactory=com.google.cloud.sql.mysql.SocketFactory&" +
-                                "connectTimeout=60000&" +
-                                "socketTimeout=60000&" +
-                                "useSSL=false"
+                        // Use direct IP connection - we know this works from manual testing
+                        jdbcUrl = "jdbc:mysql://34.87.24.135:3306/catalystdb?" +
+                                "useSSL=false&" +
+                                "allowPublicKeyRetrieval=true&" +
+                                "defaultAuthenticationPlugin=mysql_native_password&" +
+                                "connectTimeout=5000&" +
+                                "socketTimeout=30000"
                         driverClassName = "com.mysql.cj.jdbc.Driver"
-                        println("🔍 DEBUG: Using Cloud SQL Socket Factory")
+                        println("🔍 DEBUG: Using direct IP connection to Cloud SQL")
                     } else {
                         jdbcUrl = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
                         driverClassName = "org.mariadb.jdbc.Driver"
                     }
 
-                    username = EnvConfig.dbUser
-                    password = EnvConfig.dbPass
+                    username = "admin"
+                    password = "${EnvConfig.dbPass}"
                     maximumPoolSize = 3
                     minimumIdle = 1
                     isAutoCommit = false
                     transactionIsolation = "TRANSACTION_REPEATABLE_READ"
 
-                    // Increased timeouts for Cloud SQL
-                    connectionTimeout = 60000
-                    validationTimeout = 10000
-                    leakDetectionThreshold = 120000
-                    maxLifetime = 1800000
+                    // Timeout settings
+                    connectionTimeout = 10000
+                    validationTimeout = 5000
+                    leakDetectionThreshold = 60000
                 }
 
                 dataSource = HikariDataSource(config)
 
-                // Test connection with longer timeout
+                // Test connection
                 dataSource!!.connection.use { conn ->
-                    if (conn.isValid(10)) {
+                    if (conn.isValid(5)) {
                         Database.connect(dataSource!!)
                         connected = true
                         isConnecting = false
