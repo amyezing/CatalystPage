@@ -31,16 +31,16 @@ object DbConnection {
 
                 val isCloudRun = System.getenv("K_SERVICE") != null
                 println("🔍 DEBUG: isCloudRun = $isCloudRun")
-
+                
                 val config = HikariConfig().apply {
                     if (isCloudRun) {
                         // Use direct IP connection - we know this works from manual testing
                         jdbcUrl = "jdbc:mysql://34.87.24.135:3306/catalystdb?" +
-                                "useSSL=false&" +
-                                "allowPublicKeyRetrieval=true&" +
-                                "defaultAuthenticationPlugin=mysql_native_password&" +
-                                "connectTimeout=5000&" +
-                                "socketTimeout=30000"
+                            "useSSL=false&" +
+                            "allowPublicKeyRetrieval=true&" +
+                            "defaultAuthenticationPlugin=mysql_native_password&" +
+                            "connectTimeout=5000&" +
+                            "socketTimeout=30000"
                         driverClassName = "com.mysql.cj.jdbc.Driver"
                         println("🔍 DEBUG: Using direct IP connection to Cloud SQL")
                     } else {
