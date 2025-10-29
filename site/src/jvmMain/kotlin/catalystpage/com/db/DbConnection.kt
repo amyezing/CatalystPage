@@ -7,89 +7,48 @@ import java.sql.Connection
 
 object DbConnection {
     private var dataSource: HikariDataSource? = null
-    private val connectionLock = Any()
-    private var isConnecting = false
 
     fun connect() {
-        synchronized(connectionLock) {
-            if (dataSource != null || isConnecting) {
-                println("🔗 Database connection already established or in progress")
-                return
-            }
-            isConnecting = true
-        }
+        try {
+            println("🔗 Attempting database connection...")
 
-        var connected = false
-        var attempts = 0
-        val maxAttempts = 5
-        val retryDelayMs = 5000L
+            val isCloudRun = System.getenv("K_SERVICE") != null
+            println("🔍 DEBUG: isCloudRun = $isCloudRun")
+            
+            val config = HikariConfig().apply {
+                if (isCloudRun) {
+                    // Correct Cloud SQL connection format
+                    jdbcUrl = "jdbc:mysql:///catalystdb?unixSocket=/cloudsql/ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db"
+                    driverClassName = "com.mysql.cj.jdbc.Driver"
+                    println("🔍 DEBUG: Using Cloud SQL Unix socket")
+                } else {
+                    jdbcUrl = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
+                    driverClassName = "org.mariadb.jdbc.Driver"
+                }
 
-        while (!connected && attempts < maxAttempts) {
-            attempts++
-            try {
-                println("🔗 Database connection attempt $attempts/$maxAttempts...")
-
-                val isCloudRun = System.getenv("K_SERVICE") != null
-                println("🔍 DEBUG: isCloudRun = $isCloudRun")
+                username = "admin"
+                password = "${EnvConfig.dbPass}"
+                maximumPoolSize = 3
+                minimumIdle = 1
                 
-                val config = HikariConfig().apply {
-                    if (isCloudRun) {
-                        // Use direct IP connection - we know this works from manual testing
-                        jdbcUrl = "jdbc:mysql://34.87.24.135:3306/catalystdb?" +
-                            "useSSL=false&" +
-                            "allowPublicKeyRetrieval=true&" +
-                            "defaultAuthenticationPlugin=mysql_native_password&" +
-                            "connectTimeout=5000&" +
-                            "socketTimeout=30000"
-                        driverClassName = "com.mysql.cj.jdbc.Driver"
-                        println("🔍 DEBUG: Using direct IP connection to Cloud SQL")
-                    } else {
-                        jdbcUrl = "jdbc:mariadb://${EnvConfig.dbHost}:${EnvConfig.dbPort}/${EnvConfig.dbName}"
-                        driverClassName = "org.mariadb.jdbc.Driver"
-                    }
+                // Reduced timeouts for faster failure
+                connectionTimeout = 10000
+                validationTimeout = 5000
+            }
 
-                    username = "admin"
-                    password = "${EnvConfig.dbPass}"
-                    maximumPoolSize = 3
-                    minimumIdle = 1
-                    isAutoCommit = false
-                    transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            dataSource = HikariDataSource(config)
 
-                    // Timeout settings
-                    connectionTimeout = 10000
-                    validationTimeout = 5000
-                    leakDetectionThreshold = 60000
-                }
-
-                dataSource = HikariDataSource(config)
-
-                // Test connection
-                dataSource!!.connection.use { conn ->
-                    if (conn.isValid(5)) {
-                        Database.connect(dataSource!!)
-                        connected = true
-                        isConnecting = false
-                        println("✅ Database connected successfully on attempt $attempts")
-                    }
-                }
-
-            } catch (e: Exception) {
-                println("❌ Database connection attempt $attempts failed: ${e.message}")
-                e.printStackTrace()
-
-                dataSource?.close()
-                dataSource = null
-
-                if (attempts < maxAttempts) {
-                    println("⏳ Retrying in ${retryDelayMs/1000} seconds...")
-                    Thread.sleep(retryDelayMs)
+            // Test connection
+            dataSource!!.connection.use { conn ->
+                if (conn.isValid(2)) {
+                    Database.connect(dataSource!!)
+                    println("✅ Database connected successfully")
                 }
             }
-        }
 
-        if (!connected) {
-            isConnecting = false
-            println("💥 All database connection attempts failed after $maxAttempts attempts")
+        } catch (e: Exception) {
+            println("❌ Database connection failed: ${e.message}")
+            e.printStackTrace()
         }
     }
 
