@@ -4,7 +4,33 @@ COPY . .
 RUN ./gradlew :site:fatJar --no-daemon
 
 FROM eclipse-temurin:17-jre-jammy
+
+# Install wget and netcat (for checking port availability)
+RUN apt-get update && apt-get install -y wget netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
+# Download and install Cloud SQL Auth Proxy
+RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /cloud_sql_proxy
+RUN chmod +x /cloud_sql_proxy
+
 WORKDIR /app
 COPY --from=builder /app/site/build/libs/catalyst-backend-1.0-SNAPSHOT-all.jar app.jar
+
+# Create a startup script that properly waits for the proxy
+RUN echo '#!/bin/bash\n\
+# Start Cloud SQL Auth Proxy in background\n\
+/cloud_sql_proxy -instances=ethereal-zodiac-454604-u2:asia-southeast1:catalyst-db=tcp:3306 &\n\
+\n\
+# Wait for proxy to be ready (listen on port 3306)\n\
+echo "Waiting for Cloud SQL Auth Proxy to be ready..."\n\
+while ! nc -z localhost 3306; do\n\
+  sleep 1\n\
+done\n\
+echo "Cloud SQL Auth Proxy is ready!"\n\
+\n\
+# Start the application\n\
+java -jar app.jar' > /app/start.sh
+
+RUN chmod +x /app/start.sh
+
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["/app/start.sh"]
