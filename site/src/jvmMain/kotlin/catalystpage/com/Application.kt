@@ -47,6 +47,7 @@ fun Application.module() {
 
 
     install(io.ktor.server.plugins.cors.routing.CORS) {
+        allowHost("catalyst-frontend-184459898636.asia-southeast1.run.app", schemes = listOf("https"))
         allowHost("www.catalystbeveragemanufacturing.com", schemes = listOf("https"))
         allowHost("catalyst-frontend-c3h2bpneja-as.a.run.app", schemes = listOf("https"))
         allowHost("catalyst-backend-184459898636.asia-southeast1.run.app", schemes = listOf("https"))
